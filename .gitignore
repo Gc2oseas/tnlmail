@@ -1,0 +1,11 @@
+/vendor/
+/.env
+/.env.*
+!/.env.example
+/storage/*
+!/storage/.gitkeep
+*.sqlite
+*.sqlite3
+*.db
+*.log
+/node_modules/

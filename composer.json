@@ -1,0 +1,17 @@
+{
+  "name": "tnl/tnlmail",
+  "description": "Self-hosted business webmail PWA",
+  "type": "project",
+  "require": {
+    "php": "^8.3",
+    "ext-pdo": "*",
+    "ext-pdo_sqlite": "*",
+    "ext-openssl": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "TNL\\": "app/"
+    }
+  }
+}

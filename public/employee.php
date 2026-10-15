@@ -34,7 +34,7 @@ $loggedIn=isset($_SESSION['employee_id']);
 if($loggedIn){
  $s=$db->prepare('SELECT id,display_name,role,credentials_version,must_change_password FROM users WHERE id=? AND active=1 LIMIT 1');
  $s->execute([$_SESSION['employee_id']]);$current=$s->fetch(PDO::FETCH_ASSOC);
- if($current&&(int)$current['credentials_version']!==(int)($_SESSION['credentials_version']??0)))$current=false;
+ if ($current && (int)$current['credentials_version'] !== (int)($_SESSION['credentials_version'] ?? 0)) { $current = false; }
  if(!$current){unset($_SESSION['employee_id'],$_SESSION['employee_name'],$_SESSION['employee_role']);$loggedIn=false;}
 }
 if($loggedIn&&!empty($current['must_change_password'])){header('Location: recovery.php');exit;}

@@ -11,6 +11,14 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self'; form-acti
 if(!is_file(tnl_path('storage/system.sqlite'))){header('Location: ../install.php');exit;}
 tnl_session();$db=tnl_db();Users::init($db);Recovery::init($db);
 $admin=isset($_SESSION['admin_id']);$employee=isset($_SESSION['employee_id']);$error='';$notice='';
+if($employee){
+ $check=$db->prepare('SELECT credentials_version FROM users WHERE id=? AND active=1');
+ $check->execute([(int)$_SESSION['employee_id']]);$version=$check->fetchColumn();
+ if($version===false||(int)$version!==(int)($_SESSION['credentials_version']??0)){
+  unset($_SESSION['employee_id'],$_SESSION['credentials_version'],$_SESSION['employee_name'],$_SESSION['employee_role']);
+  $employee=false;
+ }
+}
 if($_SERVER['REQUEST_METHOD']==='POST'){
  tnl_check_csrf();$action=(string)($_POST['action']??'');
  try {

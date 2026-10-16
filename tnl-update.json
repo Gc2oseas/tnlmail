@@ -1,7 +1,7 @@
 {
     "format": 1,
     "channel": "develop",
-    "version": "0.3.0-dev",
+    "version": "0.3.1-dev",
     "files": {
         "app/Admin/Recovery.php": "1603e17de330ac07916aeceaaca49786eb45137a64879c58a23ab7820a36d675",
         "app/Admin/Settings.php": "5d286acca0efcf5c233b18269a6cdc90b8a9fbbe8dbfe72838d22d1ef130e6dd",
@@ -19,11 +19,11 @@
         "public/assets/app.css": "e02ef2323f7977487f0b5b844d7e7f7a48113bb882f7752cd578137965f8dd21",
         "public/deployment.php": "5a44e48d1cf58b8c01d89b8fa178f58129ac889cbbdd3f3b7a4f171116ac2bf3",
         "public/employee.php": "7c11cdead80a1aaac2f1d46e7c847f980bb5c0592d5d65a62467e622bc95569c",
-        "public/external.php": "8af39ecd435c896bc92dceea805e7d964cac5d752b9f9cc4bb48f07c82aa88e7",
+        "public/external.php": "5242bab810d7fecbff30d06bf425752970b852e64691fec94c6fc1eaa7ca5213",
         "public/index.php": "a1ce3977f5398c71ca52eb5a3a221d11a84d43b816375d958ad82b37a7cb218d",
         "public/mail.php": "2469dd8424399d29c5efe4876a0ee133ded920b1cbba523235e996076563379f",
         "public/manifest.webmanifest": "42470fec7ed4ebb8ad9a9fdafcebf5d5796ae7d17b794e029b231af63c068c2c",
-        "public/mcp.php": "28d6b4b05fc2e40f54e2d4a956e349498d7915fd73c99771399ff55f88e37876",
+        "public/mcp.php": "3847316ef7287cf2f0a284d81db2680ad5384a2d5b75bd013550fb00581c08ef",
         "public/recovery.php": "bdf550847177ecabaa914c057edd46977a1b801e09f05fed5a8615d0ec076a51",
         "public/update.php": "01620edd274c2680d871d30b5f063fabf4d584534b0a863d07c85e95a39888ad"
     }

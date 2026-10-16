@@ -13,3 +13,5 @@ Sending uses PHPMailer 7.1.1 (upstream commit 1bc1716a507a65e039d4ac9d9adebbbd0d
 **Enviados en TNL Mail** records local copies of mail sent by this app. It is not an IMAP Sent-folder view and the app does not APPEND a server-side sent copy. Each copy is scoped to the account owner.
 
 The deployment-scoped MCP token can call external_mail_probe for the user-provided test account on cache.lat. It checks authentication only, does not save credentials and does not send messages. The diagnostic token cannot call it. Do not write real mailbox credentials to Git, logs, fixtures or the deployment manifest.
+
+Verified test-account host: premium902-2.web-hosting.com. It presents a valid certificate for both 993 and 465. cache.lat points to a different IP; mail.cache.lat reaches the mail host but does not match its certificate. Use the provider hostname; never disable TLS certificate validation. The deployment-scoped probe accepts only cache.lat or this verified provider hostname.

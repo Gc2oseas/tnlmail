@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+if(is_file(__DIR__.'/storage/deploy-maintenance')&&!in_array(basename((string)($_SERVER['SCRIPT_FILENAME']??'')),['mcp.php','updates.php'],true)&&PHP_SAPI!=='cli'){
+    http_response_code(503);header('Retry-After: 30');exit('Actualización en curso. Intenta nuevamente en unos segundos.');
+}
 const TNL_ROOT = __DIR__;
 function tnl_path(string $relative): string {
     if ($relative === '' || str_contains($relative, '..') || str_starts_with($relative, '/')) {

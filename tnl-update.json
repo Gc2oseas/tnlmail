@@ -1,0 +1,22 @@
+{
+    "format": 1,
+    "channel": "develop",
+    "version": "0.2.2-dev",
+    "files": {
+        "app/Admin/Recovery.php": "e7f8aba57eb357cee577445dd1939861455a8dd5a8da9d1ddee0c0e7c76c0a96",
+        "app/Admin/Settings.php": "a56820cd47f2b185ab9ee991cfcb4fd0771dc4bc10d65b2412d4f611b1ecdc26",
+        "app/Admin/Users.php": "78e5a39e9bbfa6fe2f65cadaab31791aa3e81f175d0b4b4854545725438d7198",
+        "app/Deploy/GitHub.php": "87c551b2f743efb14ce8bbbfc5cf81c606dbc143df90846108cb8225257b7b44",
+        "app/Mail/InternalMail.php": "6fae54fe828082343f72f27c9d0fe683d303a1d2fc057952f8546bf73efc9bbc",
+        "bootstrap.php": "d4ae2579c1a9da6f62a8e480b3428c4477787d506d4ea59fa6d8ebb4fdc17675",
+        "public/assets/app.css": "2e0c1f2f5dad963a744d72d3cfb2e38106f797cc1bfad86aff2fcf8a650009f7",
+        "public/deployment.php": "5a44e48d1cf58b8c01d89b8fa178f58129ac889cbbdd3f3b7a4f171116ac2bf3",
+        "public/employee.php": "e1366441c01811e1e126b7d9bb7d090d6a8cc90921a459b3ac91ce4c1774d46d",
+        "public/index.php": "12f5e6c3f2a7761d57af47139d8bdcca47e05f7a30ee244b8723eb9a6f8aace2",
+        "public/mail.php": "222b3975fdc6f6f630215e98275fe4a0731dcfbccd5556c94c18d9e642047526",
+        "public/manifest.webmanifest": "2d9ef6cd1c85e0c93a2a91b0e8350788ac73a0b4cdd57bfdf2ada62c01e62a89",
+        "public/mcp.php": "fe0d686bcfb3789b8c9deb48c21ef8d1326c5a771504dca2a65dd69a8b8f44d3",
+        "public/recovery.php": "7cef407cb9003a256adda19189550687a5f68eea3c5ab00cd5f65976fe447ef5",
+        "public/update.php": "01620edd274c2680d871d30b5f063fabf4d584534b0a863d07c85e95a39888ad"
+    }
+}

@@ -18,13 +18,14 @@ $raw=file_get_contents('php://input',false,null,0,65537);if($raw===false||strlen
 try{$req=json_decode($raw,true,32,JSON_THROW_ON_ERROR);}catch(Throwable $e){reply(null,null,['code'=>-32700,'message'=>'JSON inválido']);}
 if(!is_array($req)||($req['jsonrpc']??'')!=='2.0'){reply(null,null,['code'=>-32600,'message'=>'JSON-RPC inválido']);}
 $id=$req['id']??null;$method=$req['method']??'';
-if($method==='initialize')reply($id,['protocolVersion'=>'2025-03-26','capabilities'=>['tools'=>['listChanged'=>false]],'serverInfo'=>['name'=>'tnlmail','version'=>'0.2.2-dev']]);
+if($method==='initialize')reply($id,['protocolVersion'=>'2025-03-26','capabilities'=>['tools'=>['listChanged'=>false]],'serverInfo'=>['name'=>'tnlmail','version'=>Settings::get($db,'version','0.3.0-dev')]]);
 if($method==='notifications/initialized'){http_response_code(202);exit;}
 function tool(string $name,string $description,array $properties=[],array $required=[]): array{return ['name'=>$name,'description'=>$description,'inputSchema'=>['type'=>'object','properties'=>$properties?:new stdClass(),'required'=>$required,'additionalProperties'=>false]];}
 $string=['type'=>'string'];$sha=['type'=>'string','pattern'=>'^[a-f0-9]{40}$'];
 $tools=[tool('system_status','Estado de PHP y versión, sin credenciales'),tool('deploy_status','Revisión instalada y último respaldo')];
 if($read){$tools[]=tool('mail_counts','Recuentos agregados, sin contenidos');$tools[]=tool('recent_events','Últimos eventos administrativos');}
 if($deploy){$tools[]=tool('github_preview','Preparar la revisión exacta actual de develop; sin instalar',['commit'=>$sha],['commit']);$tools[]=tool('github_deploy','Aplicar una vista previa verificada y respaldar la instalación',['commit'=>$sha,'ticket'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$']],['commit','ticket']);$tools[]=tool('github_rollback','Restaurar archivos y SQLite del último respaldo; descarta los cambios posteriores',['backup'=>$string,'confirm_data_loss'=>['type'=>'boolean']],['backup','confirm_data_loss']);}
+if($deploy)$tools[]=tool('external_mail_probe','Probar autenticación IMAP/SMTP de la cuenta de pruebas en cache.lat; no guarda credenciales ni envía correos',['email'=>['type'=>'string','format'=>'email'],'password'=>['type'=>'string','maxLength'=>512]],['email','password']);
 if($method==='tools/list')reply($id,['tools'=>$tools]);
 if($method==='tools/call'){
  $name=$req['params']['name']??'';$args=$req['params']['arguments']??[];
@@ -33,6 +34,7 @@ if($method==='tools/call'){
   if($name==='system_status')$out=['php'=>PHP_VERSION,'pdo_sqlite'=>extension_loaded('pdo_sqlite'),'zip'=>extension_loaded('zip'),'app_version'=>Settings::get($db,'version'),'timestamp'=>gmdate('c')];
   elseif($name==='mail_counts')$out=['users'=>(int)$db->query('SELECT count(*) FROM users')->fetchColumn(),'messages'=>(int)$db->query('SELECT count(*) FROM internal_messages')->fetchColumn(),'recovery_pending'=>(int)$db->query("SELECT count(*) FROM recovery_requests WHERE status='pending'")->fetchColumn()];
   elseif($name==='recent_events')$out=$db->query('SELECT action,actor,created_at FROM events ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC);
+  elseif($name==='external_mail_probe'){require_once dirname(__DIR__).'/app/Mail/ExternalMail.php';$config=\TNL\Mail\ExternalAccount::config(['email'=>$args['email']??'','imap_host'=>'cache.lat','smtp_host'=>'cache.lat']);$password=(string)($args['password']??'');if($password===''||strlen($password)>512||preg_match('/[\r\n\x00]/',$password))throw new RuntimeException('Credencial inválida.');$out=\TNL\Mail\ExternalMail::probe($config+['password'=>$password]);}
   else {
    require_once dirname(__DIR__).'/app/Deploy/GitHub.php';$db=null;$github=new \TNL\Deploy\GitHub(dirname(__DIR__));
    if($name==='deploy_status')$out=$github->status();

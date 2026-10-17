@@ -1,7 +1,7 @@
 {
     "format": 1,
     "channel": "develop",
-    "version": "0.10.2-dev",
+    "version": "0.10.3-dev",
     "files": {
         "app/Admin/DeviceLock.php": "ea08792035cddb0edb9ea105b3d85b6100690c76f5b8d19a9e5f742eeed52c11",
         "app/Admin/Recovery.php": "1603e17de330ac07916aeceaaca49786eb45137a64879c58a23ab7820a36d675",
@@ -26,7 +26,7 @@
         "app/Mail/PlainView.php": "6b0a500b55688db78156ac05881b7d22546eb5a4aaa36c6e1cab2f74ee538785",
         "app/Mail/Reception.php": "22fc5fb5d488502f155e038a31b9e2f32ab589d5a0c05ab7e30f56af67c4e059",
         "app/Mail/ReceptionDiagnostic.php": "042e06db9a56a8f767efb3cdb776a0314154c9257d464ade192a464e29ac14a8",
-        "app/Mail/ReceptionWorker.php": "ed445f199a9d347dd8b5e90202d95d4364583d5cac06666c0248f563a5c8c284",
+        "app/Mail/ReceptionWorker.php": "bca37be0bc6e58104e66d39053eb03df8baee37363ad5d875c72e97d07e60fc1",
         "app/Mail/RecoveryTrash.php": "083ddf07c767033d37efcd3ad19de8fa85147c3524bb107e746304c98688b923",
         "app/Mail/ReplyComposer.php": "6ab93cd0b01f0f624b71b26fd9affdf5b8685cb9a6470717c31596b02a9b160e",
         "app/Mail/Router.php": "6ed491076cac43cc8dd763eff1a40972b6e65f03ebf7cae61c4d64cfdef4173c",

@@ -51,3 +51,7 @@ form{display:grid;gap:18px;margin:22px 0 0}label{display:grid;gap:7px;color:#3a4
 @media(max-width:640px){.floating-chat-panel{right:10px;bottom:72px;width:calc(100vw - 20px)}.floating-chat-launcher{right:12px;bottom:12px}.chat-message{width:98%}}
 
 .composer-popup .floating-chat-launcher,.composer-popup .floating-chat-panel{display:none}@media(max-width:820px){.floating-chat-launcher{bottom:145px}.floating-chat-panel{bottom:202px;height:min(650px,calc(100dvh - 222px))}}
+
+.sender-privacy-note{font-size:12px;line-height:1.5;padding:10px 12px;margin:8px 0 12px;color:#735018;background:#fff6df;border:1px solid #ead8a7;border-radius:8px}.sender-privacy-note[hidden]{display:none}.sender-privacy-note strong{font-weight:650}.sender-privacy-note a{color:inherit;text-decoration:underline}
+
+.form-actions:has(.sender-privacy-note){display:grid;grid-template-columns:1fr auto}.form-actions .sender-privacy-note{grid-column:1/-1;margin:0 0 4px}.form-actions .sender-privacy-note[hidden]{display:none}

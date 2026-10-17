@@ -12,3 +12,5 @@ if(window.parent===window){
  });
  window.addEventListener('message',event=>{if(event.origin===location.origin&&frame&&event.source===frame.contentWindow&&event.data?.type==='tnl-compose-sent'){modal.close();location.reload();}});
 }
+
+document.querySelectorAll('[data-send-account]').forEach(select=>{const note=select.form.querySelector('[data-personal-warning]');if(!note)return;const update=()=>{note.hidden=select.selectedOptions[0]?.dataset.personal!=='1';};select.addEventListener('change',update);update();});

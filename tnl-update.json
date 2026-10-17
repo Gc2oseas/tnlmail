@@ -1,7 +1,7 @@
 {
     "format": 1,
     "channel": "develop",
-    "version": "0.3.2-dev",
+    "version": "0.4.0-dev",
     "files": {
         "app/Admin/Recovery.php": "1603e17de330ac07916aeceaaca49786eb45137a64879c58a23ab7820a36d675",
         "app/Admin/Settings.php": "5d286acca0efcf5c233b18269a6cdc90b8a9fbbe8dbfe72838d22d1ef130e6dd",
@@ -16,16 +16,18 @@
         "app/ThirdParty/PHPMailer/LICENSE.json": "5d0c2685fa33aff722b7eec622ef60b2c9220dc97fa856f6a8aaf8b74a4a978e",
         "app/ThirdParty/PHPMailer/PHPMailer.php": "45599a196ae7944ee2dcd4f3d3da0ac4243513d346b2d77bbd15dbd0c37f7064",
         "app/ThirdParty/PHPMailer/SMTP.php": "522bcf0d07be7e7e00114711db5c9ce2b4d59ac041c5ec36eaadd979d5fa7046",
+        "app/UI/Workspace.php": "ccc39706f4263e14b90ea37113e10c105aa28246a0ed9e70d6fb4503a1f223ab",
         "bootstrap.php": "5fad9495ef2b05d94f591f126d280b8a7386d9bc10025b3bf99b822b8e1461f4",
-        "public/assets/app.css": "e02ef2323f7977487f0b5b844d7e7f7a48113bb882f7752cd578137965f8dd21",
-        "public/deployment.php": "5a44e48d1cf58b8c01d89b8fa178f58129ac889cbbdd3f3b7a4f171116ac2bf3",
-        "public/employee.php": "7c11cdead80a1aaac2f1d46e7c847f980bb5c0592d5d65a62467e622bc95569c",
-        "public/external.php": "76c42c8f2bfcd1cbd4fd465c8b240c65c0c54d1dba8a1fa2b289a34c548711c9",
-        "public/index.php": "a1ce3977f5398c71ca52eb5a3a221d11a84d43b816375d958ad82b37a7cb218d",
-        "public/mail.php": "2469dd8424399d29c5efe4876a0ee133ded920b1cbba523235e996076563379f",
+        "public/assets/app.css": "db9c50011634dd20db4cc84a051737917cd9490f66c0c3ed1b3a4e293d9ed4d2",
+        "public/assets/workspace.js": "180eb4bbf884ff1a02f0a801e7c222ce8b1e393490414efe6eff7c2d93e2117f",
+        "public/deployment.php": "00bc7aced04bc2d578e6d594c517907b5e8ade40e8e16e55b07cb76b63045b07",
+        "public/employee.php": "31bd98e392bfbc9410948c73fd996e0e329ceefff426bfd3536a0a4815ff0fb2",
+        "public/external.php": "fdcfa9ba5612ff4556d62a559029b8b0ba1d7c51d28cf82f2c0f69c2ba947f87",
+        "public/index.php": "9a2e028427965df134261d46f680af364efcdefd41c0a21e799329501836202c",
+        "public/mail.php": "4e76d704da9b96e30e4291913d0484115217a0011e700bcf039e02d7a11a2530",
         "public/manifest.webmanifest": "42470fec7ed4ebb8ad9a9fdafcebf5d5796ae7d17b794e029b231af63c068c2c",
         "public/mcp.php": "3847316ef7287cf2f0a284d81db2680ad5384a2d5b75bd013550fb00581c08ef",
-        "public/recovery.php": "bdf550847177ecabaa914c057edd46977a1b801e09f05fed5a8615d0ec076a51",
+        "public/recovery.php": "e351af73d4cdc27d31dd8d74188b0079f406d180a47c63173533350ea9e5f71d",
         "public/update.php": "01620edd274c2680d871d30b5f063fabf4d584534b0a863d07c85e95a39888ad"
     }
 }

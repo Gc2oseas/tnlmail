@@ -35,6 +35,9 @@ final class InternalMail {
   }
   $s=$db->prepare($sql);$s->execute([$user]);return $s->fetchAll(\PDO::FETCH_ASSOC);
  }
+ public static function threads(\PDO $db,int $user): array {
+  self::init($db);$q=$db->prepare('SELECT m.*,u.display_name peer_name,u.internal_address peer_address FROM internal_messages m JOIN users u ON u.id=CASE WHEN m.sender_id=? THEN m.recipient_id ELSE m.sender_id END WHERE (m.sender_id=? AND m.deleted_by_sender=0) OR (m.recipient_id=? AND m.deleted_by_recipient=0) ORDER BY m.id DESC LIMIT 500');$q->execute([$user,$user,$user]);$rows=$q->fetchAll(\PDO::FETCH_ASSOC);$parents=[];foreach($rows as $m)$parents[(int)$m['id']]=(int)$m['reply_to_id'];$groups=[];foreach($rows as $m){$root=(int)$m['id'];$seen=[];while(!isset($seen[$root])&&!empty($parents[$root])){$seen[$root]=true;$root=$parents[$root];}$visible=((int)$m['sender_id']===$user&&!(int)$m['archived_by_sender'])||((int)$m['recipient_id']===$user&&!(int)$m['archived_by_recipient']);if(!$visible)continue;if(!isset($groups[$root]))$groups[$root]=$m+['unread_count'=>0,'message_count'=>0];$groups[$root]['message_count']++;if((int)$m['recipient_id']===$user&&$m['read_at']===null)$groups[$root]['unread_count']++;}return array_slice(array_values($groups),0,100);
+ }
  public static function read(\PDO $db,int $user,int $id): ?array {
   self::init($db);$s=$db->prepare('SELECT m.*,u.display_name sender_name,u.internal_address sender_address FROM internal_messages m JOIN users u ON u.id=m.sender_id WHERE m.id=? AND ((m.recipient_id=? AND m.deleted_by_recipient=0) OR (m.sender_id=? AND m.deleted_by_sender=0))');
   $s->execute([$id,$user,$user]);$m=$s->fetch(\PDO::FETCH_ASSOC);
@@ -45,7 +48,7 @@ final class InternalMail {
  public static function conversation(\PDO $db,int $user,int $id): array {
   self::init($db);$q=$db->prepare('SELECT m.*,u.display_name sender_name,u.internal_address sender_address FROM internal_messages m JOIN users u ON u.id=m.sender_id WHERE (m.sender_id=? AND m.deleted_by_sender=0) OR (m.recipient_id=? AND m.deleted_by_recipient=0) ORDER BY m.id DESC LIMIT 500');$q->execute([$user,$user]);$rows=$q->fetchAll(\PDO::FETCH_ASSOC);$selected=[];foreach($rows as $m)if((int)$m['id']===$id)$selected[$id]=true;if(!$selected)return [];
   for($i=0;$i<50;$i++){$changed=false;foreach($rows as $m){$mid=(int)$m['id'];$parent=(int)$m['reply_to_id'];if(isset($selected[$mid])&&$parent>0&&!isset($selected[$parent])){$selected[$parent]=true;$changed=true;}if(isset($selected[$parent])&&!isset($selected[$mid])){$selected[$mid]=true;$changed=true;}}if(!$changed)break;}
-  return array_reverse(array_values(array_filter($rows,fn($m)=>isset($selected[(int)$m['id']]))));
+  $thread=array_reverse(array_values(array_filter($rows,fn($m)=>isset($selected[(int)$m['id']]))));$mark=$db->prepare('UPDATE internal_messages SET read_at=? WHERE id=? AND recipient_id=? AND read_at IS NULL');foreach($thread as $m)$mark->execute([gmdate('c'),$m['id'],$user]);return $thread;
  }
  public static function archive(\PDO $db,int $user,int $id,bool $archived=true): void {
   self::init($db);$value=$archived?1:0;

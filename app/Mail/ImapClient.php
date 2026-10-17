@@ -28,8 +28,8 @@ final class ImapClient {
  public function inbox(int $page=1,string $folder='INBOX'): array {
   $response=$this->command('EXAMINE '.$this->folder($folder));$count=0;foreach($response as $r)if(preg_match('/^\* (\d+) EXISTS\r\n$/D',$r['line'],$m))$count=(int)$m[1];
   $page=max(1,min($page,max(1,(int)ceil($count/20))));$end=$count-($page-1)*20;if($end<1)return ['total'=>0,'page'=>1,'messages'=>[]];$start=max(1,$end-19);
-  $rows=$this->command('FETCH '.$start.':'.$end.' (UID FLAGS BODY.PEEK[HEADER.FIELDS (SUBJECT FROM DATE TO)] RFC822.SIZE)');$messages=[];
-  foreach($rows as $r){if($r['literal']===null||!preg_match('/\bUID (\d+)\b/',$r['line'],$m))continue;$headers=self::headers($r['literal']);$messages[]=['uid'=>(int)$m[1],'subject'=>$headers['subject']??'(sin asunto)','from'=>$headers['from']??'','date'=>$headers['date']??''];}
+  $rows=$this->command('FETCH '.$start.':'.$end.' (UID FLAGS BODY.PEEK[HEADER.FIELDS (SUBJECT FROM DATE TO MESSAGE-ID IN-REPLY-TO REFERENCES)] RFC822.SIZE)');$messages=[];
+  foreach($rows as $r){if($r['literal']===null||!preg_match('/\bUID (\d+)\b/',$r['line'],$m))continue;$headers=self::headers($r['literal']);$messages[]=['headers'=>$headers,'unread'=>!preg_match('/\\Seen\b/i',$r['line']),'uid'=>(int)$m[1],'subject'=>$headers['subject']??'(sin asunto)','from'=>$headers['from']??'','date'=>$headers['date']??''];}
   return ['total'=>$count,'page'=>$page,'messages'=>array_reverse($messages),'validity'=>$this->validity($response)];
  }
  public function checkpoint(): array {
@@ -39,6 +39,9 @@ final class ImapClient {
   if($start<1)throw new \InvalidArgumentException('Cursor inválido.');$state=$this->checkpoint();$rows=$this->command('UID SEARCH UID '.$start.':*');$uids=[];foreach($rows as $r)if(preg_match('/^\* SEARCH(?: (.*))?\r\n$/D',$r['line'],$m))foreach(explode(' ',trim($m[1]??'')) as $v)if(ctype_digit($v)&&(int)$v>=$start)$uids[]=(int)$v;sort($uids,SORT_NUMERIC);return $state+['uids'=>array_slice(array_unique($uids),0,20)];
  }
  public function unreadCount(): int {$rows=$this->command('STATUS INBOX (UNSEEN)');foreach($rows as $r)if(preg_match('/\bUNSEEN (\d+)/i',$r['line'],$m))return (int)$m[1];throw new \RuntimeException('Recuento IMAP no disponible.');}
+ public function markSeen(array $uids,string $folder='INBOX'): void {
+  $uids=array_values(array_unique(array_filter(array_map('intval',$uids),fn($uid)=>$uid>0)));if(!$uids)return;$this->command('SELECT '.$this->folder($folder));$this->command('UID STORE '.implode(',',array_slice($uids,0,30)).' +FLAGS.SILENT (\\Seen)');
+ }
  public function conversation(array $headers,string $folder='INBOX'): array {
   require_once __DIR__.'/ReplyComposer.php';$thread=ReplyComposer::thread($headers);if(!$thread)return [];
   preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$thread['references'],$ids);$root=$ids[0][0]??'';if(ReplyComposer::messageId($root)==='')return [];
@@ -49,7 +52,7 @@ final class ImapClient {
  }
  public function read(int $uid,string $folder='INBOX'): array {
   if($uid<1)throw new \InvalidArgumentException('Mensaje inválido.');$this->command('EXAMINE '.$this->folder($folder));$sizes=$this->command('UID FETCH '.$uid.' (RFC822.SIZE)');$found=false;foreach($sizes as $r)if(preg_match('/RFC822.SIZE (\d+)/',$r['line'],$m)){$found=true;if((int)$m[1]>1048576)throw new \RuntimeException('El mensaje supera el límite de lectura de 1 MB.');}if(!$found)throw new \RuntimeException('Mensaje no encontrado.');
-  $rows=$this->command('UID FETCH '.$uid.' (UID BODY.PEEK[])');foreach($rows as $r)if($r['literal']!==null&&preg_match('/\bUID (\d+)\b/',$r['line'],$m)&&(int)$m[1]===$uid)return self::message($r['literal'])+MimeView::extract($r['literal']);throw new \RuntimeException('Mensaje no encontrado.');
+  $rows=$this->command('UID FETCH '.$uid.' (UID BODY.PEEK[])');foreach($rows as $r)if($r['literal']!==null&&preg_match('/\bUID (\d+)\b/',$r['line'],$m)&&(int)$m[1]===$uid)return ['uid'=>$uid]+self::message($r['literal'])+MimeView::extract($r['literal']);throw new \RuntimeException('Mensaje no encontrado.');
  }
 
  private function folder(string $folder): string {

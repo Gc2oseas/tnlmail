@@ -47,4 +47,4 @@ function bindMailFrames(){document.querySelectorAll('iframe[data-mail-view]').fo
 });}
 bindMailFrames();window.addEventListener('tnl-mail-refreshed',bindMailFrames);
 
-if(document.querySelector('.account-actions')&&!document.body.classList.contains('composer-popup')){const script=document.createElement('script');script.src=new URL('notifications.js?v=0.10.1',document.currentScript.src).href;script.defer=true;document.head.append(script);}
+if(document.querySelector('.account-actions')&&!document.body.classList.contains('composer-popup')){const script=document.createElement('script');script.src=new URL('notifications.js?v=0.11.0',document.currentScript.src).href;script.defer=true;document.head.append(script);}

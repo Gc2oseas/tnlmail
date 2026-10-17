@@ -1,7 +1,7 @@
 {
     "format": 1,
     "channel": "develop",
-    "version": "0.12.2-dev",
+    "version": "0.12.3-dev",
     "files": {
         "app/Admin/DeviceLock.php": "ea08792035cddb0edb9ea105b3d85b6100690c76f5b8d19a9e5f742eeed52c11",
         "app/Admin/Recovery.php": "1603e17de330ac07916aeceaaca49786eb45137a64879c58a23ab7820a36d675",
@@ -67,7 +67,7 @@
         "public/lock.php": "ff1c2e23f8d22a8fa2529d0d05ef4b5b5995db007ec18027ddbd06f184b53b65",
         "public/mail.php": "4184785abf82ab1d53335a23b08b01f73c246cf5de6fca907e4237b2b6e03758",
         "public/manifest.webmanifest": "42470fec7ed4ebb8ad9a9fdafcebf5d5796ae7d17b794e029b231af63c068c2c",
-        "public/mcp.php": "78ae8cd16b93e9a7e904e95d2e13c6fb60f618ff95354cfeddd7f80cb6ca373e",
+        "public/mcp.php": "a4d1c0d3646acacc148598c4e6f04485074ee6073dd96036f43eff136478b61a",
         "public/notices.php": "ff216c0dee7f50c981d8a7a18ed4f2bd2c16ac62539fde493c24d4c9bc0e8f6c",
         "public/notifications.php": "deb37c8ead5d01e317d5696a8591b5d810feca4cde948617e0eb19be0bc8d540",
         "public/print.php": "deefbc3c117d47185d0d4b785ea92627d38c6ad965553209675b229070fa1462",

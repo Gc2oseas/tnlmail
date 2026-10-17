@@ -4,6 +4,14 @@ if(is_file(__DIR__.'/storage/deploy-maintenance')&&!in_array(basename((string)($
     http_response_code(503);header('Retry-After: 30');exit('Actualización en curso. Intenta nuevamente en unos segundos.');
 }
 const TNL_ROOT = __DIR__;
+// The updater creates new directories as 0700. Only this public route needs
+// web-server traversal; storage and application directories stay private.
+$adminRouteDir=__DIR__.'/public/admin';
+if(PHP_OS_FAMILY!=='Windows'&&is_dir($adminRouteDir)&&!is_link($adminRouteDir)){
+    $routeMode=fileperms($adminRouteDir);
+    if($routeMode!==false&&($routeMode&0055)!==0055&&!chmod($adminRouteDir,0755))error_log('TNL Mail: cannot set public/admin traversal permissions');
+}
+unset($adminRouteDir,$routeMode);
 function tnl_path(string $relative): string {
     if ($relative === '' || str_contains($relative, '..') || str_starts_with($relative, '/')) {
         throw new InvalidArgumentException('Invalid relative path');

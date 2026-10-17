@@ -1,7 +1,7 @@
 {
     "format": 1,
     "channel": "develop",
-    "version": "0.5.0-dev",
+    "version": "0.5.1-dev",
     "files": {
         "app/Admin/DeviceLock.php": "ea08792035cddb0edb9ea105b3d85b6100690c76f5b8d19a9e5f742eeed52c11",
         "app/Admin/Recovery.php": "1603e17de330ac07916aeceaaca49786eb45137a64879c58a23ab7820a36d675",
@@ -20,7 +20,7 @@
         "app/ThirdParty/PHPMailer/PHPMailer.php": "45599a196ae7944ee2dcd4f3d3da0ac4243513d346b2d77bbd15dbd0c37f7064",
         "app/ThirdParty/PHPMailer/SMTP.php": "522bcf0d07be7e7e00114711db5c9ce2b4d59ac041c5ec36eaadd979d5fa7046",
         "app/UI/Workspace.php": "f0ff574cc33c76b88d39e5253559afb2241f266cbcb637fe2e5c145c475d81e1",
-        "bootstrap.php": "c9e55e0e8b15af2be5058d2b2c6bc23189c8f6af18f42e5bf782b995022f78c6",
+        "bootstrap.php": "61d76e828f42da1c0a3cfeb6f49c8f7558b726b1003bbde706b52b8ea50b5d28",
         "public/admin.php": "1300c1d49233b062e9a9baff92264296067f8836f968bc655092b26003d43518",
         "public/admin/index.php": "16605f0a88b2f887d9ce9ae4e73527fba5e98332cce748854bca84328a85c7d7",
         "public/assets/app.css": "9481dfc5375fb2e0a40ab01d57353f5843239a3fda155ba9b386c4d11b999865",

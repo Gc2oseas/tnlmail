@@ -32,6 +32,13 @@ final class ImapClient {
   foreach($rows as $r){if($r['literal']===null||!preg_match('/\bUID (\d+)\b/',$r['line'],$m))continue;$headers=self::headers($r['literal']);$messages[]=['uid'=>(int)$m[1],'subject'=>$headers['subject']??'(sin asunto)','from'=>$headers['from']??'','date'=>$headers['date']??''];}
   return ['total'=>$count,'page'=>$page,'messages'=>array_reverse($messages),'validity'=>$this->validity($response)];
  }
+ public function checkpoint(): array {
+  $rows=$this->command('EXAMINE INBOX');$next=0;foreach($rows as $r)if(preg_match('/\[UIDNEXT (\d+)\]/i',$r['line'],$m))$next=(int)$m[1];if($next<1)throw new \RuntimeException('El servidor no informó UIDNEXT.');return ['validity'=>$this->validity($rows),'next'=>$next];
+ }
+ public function uidsSince(int $start): array {
+  if($start<1)throw new \InvalidArgumentException('Cursor inválido.');$state=$this->checkpoint();$rows=$this->command('UID SEARCH UID '.$start.':*');$uids=[];foreach($rows as $r)if(preg_match('/^\* SEARCH(?: (.*))?\r\n$/D',$r['line'],$m))foreach(explode(' ',trim($m[1]??'')) as $v)if(ctype_digit($v)&&(int)$v>=$start)$uids[]=(int)$v;sort($uids,SORT_NUMERIC);return $state+['uids'=>array_slice(array_unique($uids),0,20)];
+ }
+ public function unreadCount(): int {$rows=$this->command('STATUS INBOX (UNSEEN)');foreach($rows as $r)if(preg_match('/\bUNSEEN (\d+)/i',$r['line'],$m))return (int)$m[1];throw new \RuntimeException('Recuento IMAP no disponible.');}
  public function conversation(array $headers,string $folder='INBOX'): array {
   require_once __DIR__.'/ReplyComposer.php';$thread=ReplyComposer::thread($headers);if(!$thread)return [];
   preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$thread['references'],$ids);$root=$ids[0][0]??'';if(ReplyComposer::messageId($root)==='')return [];

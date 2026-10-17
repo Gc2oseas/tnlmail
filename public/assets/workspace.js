@@ -45,3 +45,5 @@ document.querySelectorAll('iframe[data-mail-view]').forEach(frame=>{
  frame.addEventListener('load',()=>{size();try{const doc=frame.contentDocument;if(doc){new ResizeObserver(size).observe(doc.body);doc.querySelectorAll('img').forEach(img=>img.addEventListener('load',size));}}catch{}});
  if(frame.contentDocument?.readyState==='complete')size();
 });
+
+if(document.querySelector('.account-actions')&&!document.body.classList.contains('composer-popup')){const script=document.createElement('script');script.src=new URL('notifications.js?v=0.10.0',document.currentScript.src).href;script.defer=true;document.head.append(script);}

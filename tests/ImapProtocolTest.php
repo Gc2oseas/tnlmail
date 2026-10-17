@@ -14,7 +14,9 @@ final class FakeImapStream {
   $header="Subject: Header test\r\nFrom: sender@example.test\r\nDate: 2026-10-16\r\n\r\n";
   $body="Subject: Full test\r\nMessage-ID: <child@example.test>\r\nReferences: <root@example.test>\r\nContent-Type: text/plain\r\n\r\n".str_repeat('Payload ',600);
   if(str_starts_with($command,'LOGIN '))$this->response.=$tag." OK authenticated\r\n";
-  elseif($command==='EXAMINE INBOX')$this->response.="* 1 EXISTS\r\n".$tag." OK [READ-ONLY]\r\n";
+  elseif($command==='EXAMINE INBOX')$this->response.="* 1 EXISTS\r\n* OK [UIDVALIDITY 99] valid\r\n* OK [UIDNEXT 43] next\r\n".$tag." OK [READ-ONLY]\r\n";
+  elseif($command==='UID SEARCH UID 42:*')$this->response.="* SEARCH 1 42\r\n".$tag." OK searched\r\n";
+  elseif($command==='STATUS INBOX (UNSEEN)')$this->response.="* STATUS INBOX (UNSEEN 3)\r\n".$tag." OK status\r\n";
   elseif(str_starts_with($command,'FETCH '))$this->response.="* 1 FETCH (UID 42 FLAGS () BODY[HEADER.FIELDS (SUBJECT FROM DATE TO)] {".strlen($header)."}\r\n".$header.")\r\n".$tag." OK fetched\r\n";
   elseif(str_starts_with($command,'UID SEARCH OR HEADER Message-ID '))$this->response.="* SEARCH 42\r\n".$tag." OK searched\r\n";
   elseif($command==='UID FETCH 42 (RFC822.SIZE)')$this->response.='* 1 FETCH (UID 42 RFC822.SIZE '.(self::$oversize?2000000:strlen($body)).")\r\n".$tag." OK size\r\n";
@@ -30,4 +32,5 @@ $message=$client->read(42);if($message['headers']['subject']!=='Full test'||strl
 if(!str_contains(FakeImapStream::$commands[0],'quote\\"slash\\\\'))throw new RuntimeException('Password quoting failed');echo "PASS: IMAP authentication quotes credentials correctly\n";
 foreach(FakeImapStream::$commands as $command)if(str_contains($command,'BODY[')||str_contains($command,'SELECT '))throw new RuntimeException('Read operation is not read-only');echo "PASS: use EXAMINE and BODY.PEEK only\n";
 $threadMessages=$client->conversation(['message-id'=>'<root@example.test>']);if(count($threadMessages)!==1)throw new RuntimeException('Thread search failed');echo "PASS: RFC conversation search returns related messages via read-only UID commands\n";
+$cp=$client->checkpoint();if($cp!==['validity'=>99,'next'=>43])throw new RuntimeException('Checkpoint failed');$uids=$client->uidsSince(42);if($uids['uids']!==[42])throw new RuntimeException('UID cursor failed');if($client->unreadCount()!==3)throw new RuntimeException('Unread count failed');echo "PASS: shared reception cursor and unread counts use read-only IMAP commands\n";
 FakeImapStream::$oversize=true;try{$client->read(42);throw new LogicException('Oversized message allowed');}catch(RuntimeException $e){if($e instanceof LogicException)throw $e;}echo "PASS: reject oversized message before full download\n";$client->close();

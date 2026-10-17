@@ -53,11 +53,12 @@ final class ServerProfiles {
    if($cached){$profile=$cached['profile']!==null?json_decode($cached['profile'],true,16,JSON_THROW_ON_ERROR):null;return $profile?self::forEmail($profile,$email):null;}
   }
   $profile=null;
-  if($resolver===null||$discovery!==null)$profile=($discovery??new CorporateDiscovery())->discover($domain);
+  if($resolver===null||$discovery!==null)$profile=($discovery??new CorporateDiscovery())->discover($domain,false);
   if($profile){if($useCache)self::cache($db,$domain,$profile);return self::forEmail($profile,$email);}
   // Provider MX fallback reads public metadata only; credentials are never used for discovery.
   $records=$resolver?$resolver($domain):@dns_get_record($domain,DNS_MX);
   $profile=self::known($domain,array_column($records?:[],'target'));
+  if(!$profile&&($resolver===null||$discovery!==null))$profile=($discovery??new CorporateDiscovery())->templates($domain);
   if($useCache)self::cache($db,$domain,$profile);
   return $profile?self::forEmail($profile,$email):null;
  }

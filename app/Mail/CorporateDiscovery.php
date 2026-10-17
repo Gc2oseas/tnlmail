@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace TNL\Mail;
 final class CorporateDiscovery {
- public function __construct(private ?\Closure $fetcher=null,private ?\Closure $dns=null) {}
+ public function __construct(private ?\Closure $fetcher=null,private ?\Closure $dns=null,private ?\Closure $probe=null) {}
  public static function host(string $host): bool {return strlen($host)<=253&&(bool)preg_match('/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}$/D',$host);}
  public static function publicIp(string $ip): bool {
   if(!filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE))return false;
@@ -64,7 +64,7 @@ final class CorporateDiscovery {
   usort($records,fn($a,$b)=>(int)($a['pri']??65535)<=>(int)($b['pri']??65535));
   foreach($records as $r){$host=strtolower(rtrim((string)($r['target']??''),'.'));if((int)($r['port']??0)===$port&&self::host($host))return $host;}return null;
  }
- public function discover(string $domain): ?array {
+ public function discover(string $domain,bool $templates=true): ?array {
   if(!self::host($domain))return null;$deadline=microtime(true)+8;
   $locations=[['autoconfig.'.$domain,'/mail/config-v1.1.xml','Autoconfig del dominio'],[$domain,'/.well-known/autoconfig/mail/config-v1.1.xml','Autoconfig del dominio'],['autoconfig.thunderbird.net','/v1.1/'.$domain,'Directorio de Thunderbird']];
   foreach($locations as [$host,$path,$source]){
@@ -72,9 +72,14 @@ final class CorporateDiscovery {
    try{$xml=$this->fetch($host,$path);$profile=$xml!==null?self::parse($xml,$domain):null;if($profile)return $profile+['provider'=>'Correo corporativo','source'=>$source,'hint'=>'Servidores obtenidos de '.$source.'.'];}catch(\Throwable $e){}
   }
   $imap=$this->srv('_imaps._tcp.'.$domain,993);
-  if(!$imap)return null;$smtp=$this->srv('_submissions._tcp.'.$domain,465);$port=465;
-  if(!$smtp){$smtp=$this->srv('_submission._tcp.'.$domain,587);$port=587;}
-  if(!$smtp)return null;
-  return ['provider'=>'Correo corporativo','source'=>'DNS SRV','imap_host'=>$imap,'smtp_host'=>$smtp,'smtp_port'=>$port,'auth'=>'password','hint'=>'Servidores anunciados por el DNS del dominio.'];
+  $smtp=$imap?$this->srv('_submissions._tcp.'.$domain,465):null;$port=465;
+  if($imap&&!$smtp){$smtp=$this->srv('_submission._tcp.'.$domain,587);$port=587;}
+  if($imap&&$smtp)return ['provider'=>'Correo corporativo','source'=>'DNS SRV','imap_host'=>$imap,'smtp_host'=>$smtp,'smtp_port'=>$port,'auth'=>'password','hint'=>'Servidores anunciados por el DNS del dominio.'];
+  return $templates?$this->templates($domain):null;
+ }
+ public function templates(string $domain): ?array {
+  if(($this->fetcher||$this->dns)&&!$this->probe)return null;
+  require_once __DIR__.'/DomainTemplates.php';
+  return (new DomainTemplates($this->probe))->discover($domain);
  }
 }

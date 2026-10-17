@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace TNL\Mail;
 
+require_once __DIR__.'/MimeView.php';
 final class ImapClient {
  private $stream=null;private int $tag=0;
  public function __construct(private array $config,private ?\Closure $connector=null) {}
@@ -33,11 +34,11 @@ final class ImapClient {
  }
  public function read(int $uid,string $folder='INBOX'): array {
   if($uid<1)throw new \InvalidArgumentException('Mensaje inválido.');$this->command('EXAMINE '.$this->folder($folder));$sizes=$this->command('UID FETCH '.$uid.' (RFC822.SIZE)');$found=false;foreach($sizes as $r)if(preg_match('/RFC822.SIZE (\d+)/',$r['line'],$m)){$found=true;if((int)$m[1]>1048576)throw new \RuntimeException('El mensaje supera el límite de lectura de 1 MB.');}if(!$found)throw new \RuntimeException('Mensaje no encontrado.');
-  $rows=$this->command('UID FETCH '.$uid.' (UID BODY.PEEK[])');foreach($rows as $r)if($r['literal']!==null&&preg_match('/\bUID (\d+)\b/',$r['line'],$m)&&(int)$m[1]===$uid)return self::message($r['literal']);throw new \RuntimeException('Mensaje no encontrado.');
+  $rows=$this->command('UID FETCH '.$uid.' (UID BODY.PEEK[])');foreach($rows as $r)if($r['literal']!==null&&preg_match('/\bUID (\d+)\b/',$r['line'],$m)&&(int)$m[1]===$uid)return self::message($r['literal'])+MimeView::extract($r['literal']);throw new \RuntimeException('Mensaje no encontrado.');
  }
 
  private function folder(string $folder): string {
-  if(!in_array($folder,['INBOX','TNL Archive','TNL Trash','TNL Recovered'],true))throw new \InvalidArgumentException('Carpeta inválida.');
+  if(!in_array($folder,['INBOX','TNL Archive','TNL Trash','TNL Recovered','TNL Spam'],true))throw new \InvalidArgumentException('Carpeta inválida.');
   return $folder==='INBOX'?'INBOX':$this->quote($folder);
  }
  private function validity(array $rows): int {
@@ -56,6 +57,14 @@ final class ImapClient {
   $this->selectWritable($from,$validity);
   try{$this->command('CREATE '.$this->folder($to));}catch(\RuntimeException $e){}
   $this->command('UID MOVE '.$uid.' '.$this->folder($to));
+ }
+ public function headersFor(int $uid,string $folder,int $expected): array {
+  if($uid<1)throw new \InvalidArgumentException('Mensaje inválido.');
+  $rows=$this->command('EXAMINE '.$this->folder($folder));
+  if($expected<1||$this->validity($rows)!==$expected)throw new \RuntimeException('Actualiza la carpeta antes de continuar.');
+  $rows=$this->command('UID FETCH '.$uid.' (UID BODY.PEEK[HEADER.FIELDS (FROM)])');
+  foreach($rows as $r)if($r['literal']!==null&&preg_match('/\bUID (\d+)\b/',$r['line'],$m)&&(int)$m[1]===$uid)return self::headers($r['literal']);
+  throw new \RuntimeException('Mensaje no encontrado.');
  }
  public function raw(int $uid,string $folder,int $validity): string {
   if($uid<1)throw new \InvalidArgumentException('Mensaje inválido.');

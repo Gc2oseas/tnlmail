@@ -37,7 +37,7 @@ final class ExternalAccount {
   return $config+['password'=>$password,'smtp_password'=>$password];
  }
  public function save(string $owner,array $input,string $password): void {
-  if(!preg_match('/^(admin|employee|mailbox):[1-9][0-9]*$/D',$owner))throw new \InvalidArgumentException('Propietario inválido.');$config=self::config($input);
+  if(!preg_match('/^(admin|employee|mailbox|personal):[1-9][0-9]*$/D',$owner))throw new \InvalidArgumentException('Propietario inválido.');$config=self::config($input);
   if($password===''){$old=$this->load($owner);if(!$old||$old['email']!==$config['email'])throw new \InvalidArgumentException('Introduce la contraseña de esta cuenta.');$password=$old['password'];}
   if(strlen($password)>512||preg_match('/[\r\n\x00]/',$password))throw new \InvalidArgumentException('Contraseña inválida.');
   $old=$this->load($owner);$smtpPassword=(string)($input['smtp_password']??'');
@@ -48,6 +48,7 @@ final class ExternalAccount {
   if($cipher===false)throw new \RuntimeException('No se pudo cifrar la credencial.');
   $this->db->prepare('INSERT INTO external_accounts(owner,config,secret) VALUES(?,?,?) ON CONFLICT(owner) DO UPDATE SET config=excluded.config,secret=excluded.secret')->execute([$owner,json_encode($config,JSON_THROW_ON_ERROR),base64_encode($nonce.$tag.$cipher)]);
  }
- public function sent(string $owner): array {$s=$this->db->prepare('SELECT recipient,subject,created_at FROM external_sent WHERE owner=? ORDER BY id DESC LIMIT 30');$s->execute([$owner]);return $s->fetchAll(\PDO::FETCH_ASSOC);}
+ public function sent(string $owner): array {$s=$this->db->prepare('SELECT id,recipient,subject,created_at FROM external_sent WHERE owner=? ORDER BY id DESC LIMIT 30');$s->execute([$owner]);return $s->fetchAll(\PDO::FETCH_ASSOC);}
+ public function sentMessage(string $owner,int $id): ?array {$q=$this->db->prepare('SELECT * FROM external_sent WHERE id=? AND owner=?');$q->execute([$id,$owner]);return $q->fetch(\PDO::FETCH_ASSOC)?:null;}
  public function recordSent(string $owner,string $to,string $subject,string $body,string $messageId): void {$this->db->prepare('INSERT INTO external_sent(owner,recipient,subject,body,message_id,created_at) VALUES(?,?,?,?,?,?)')->execute([$owner,$to,$subject,$body,$messageId,gmdate('c')]);}
 }

@@ -13,7 +13,7 @@ final class ReplyComposer {
   while(count($refs)>1&&strlen(implode(' ',$refs))>800)array_shift($refs);
   return ['in_reply_to'=>$id,'references'=>implode(' ',$refs)];
  }
- private static function address(string $header): string {
+ public static function address(string $header): string {
   if(preg_match('/[\r\n\x00]/',$header))return '';
   $header=trim($header);if(filter_var($header,FILTER_VALIDATE_EMAIL))return $header;
   // Conservador: una sola dirección. Listas o sintaxis ambigua requieren selección manual.

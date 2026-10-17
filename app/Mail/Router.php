@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace TNL\Mail;
 require_once __DIR__.'/InternalMail.php';
 require_once dirname(__DIR__).'/Admin/Settings.php';
+require_once __DIR__.'/SpamPolicy.php';
 final class Router {
  public static function init(\PDO $db): void {
   $db->exec('CREATE TABLE IF NOT EXISTS mail_routes(id INTEGER PRIMARY KEY,actor TEXT NOT NULL,recipient TEXT NOT NULL,route TEXT NOT NULL,status TEXT NOT NULL,created_at TEXT NOT NULL)');
@@ -43,6 +44,16 @@ final class Router {
   self::log($db,$actor,$plan['recipient'],'smtp','attempting');$routeId=(int)$db->lastInsertId();
   try{$messageId=$smtp($plan['recipient']);}catch(\Throwable $e){$db->prepare("UPDATE mail_routes SET status='unconfirmed' WHERE id=?")->execute([$routeId]);throw $e;}
   $db->prepare("UPDATE mail_routes SET status='accepted' WHERE id=?")->execute([$routeId]);return ['route'=>'smtp','message_id'=>$messageId];
+ }
+ public static function filterIncoming(\PDO $db,string $principal,array $inbox,callable $quarantine): array {
+  $policy=new SpamPolicy($db);$visible=[];$hidden=0;$moved=0;$attempts=0;
+  foreach($inbox['messages'] as $message){
+   if(!$policy->blocked($principal,(string)($message['from']??''))){$visible[]=$message;continue;}
+   $hidden++;$status='filtered';
+   if($attempts<3&&(int)($inbox['validity']??0)>0){$attempts++;try{$quarantine((int)$message['uid'],(int)$inbox['validity']);$moved++;$status='quarantined';}catch(\Throwable $e){}}
+   self::log($db,$principal,$policy->address($message['from']),'spam',$status);
+  }
+  $inbox['messages']=$visible;$inbox['spam_hidden']=$hidden;$inbox['spam_moved']=$moved;return $inbox;
  }
  public static function recent(\PDO $db): array {self::init($db);return $db->query('SELECT actor,recipient,route,status,created_at FROM mail_routes ORDER BY id DESC LIMIT 100')->fetchAll(\PDO::FETCH_ASSOC);}
 }

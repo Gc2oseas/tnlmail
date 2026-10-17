@@ -34,3 +34,14 @@ document.querySelectorAll('[data-provider-email]').forEach(input=>{
  }catch(e){if(e.name!=='AbortError'&&current===version)status.textContent='No se pudo detectar. Puedes usar Configuración avanzada.';}},400);}
  input.addEventListener('input',update);mode.addEventListener('change',update);update();
 });
+
+document.querySelectorAll('[data-mail-actions]').forEach(button=>button.addEventListener('click',()=>{
+ const row=button.closest('.mail-row-wrap'),open=!row.classList.contains('actions-open');
+ row.classList.toggle('actions-open',open);button.setAttribute('aria-expanded',String(open));
+}));
+document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.mail-row-wrap.actions-open').forEach(row=>{row.classList.remove('actions-open');row.querySelector('[data-mail-actions]')?.setAttribute('aria-expanded','false');});});
+document.querySelectorAll('iframe[data-mail-view]').forEach(frame=>{
+ function size(){try{const doc=frame.contentDocument;if(doc)frame.height=String(Math.max(140,Math.min(70000,doc.documentElement.scrollHeight+16)));}catch{}}
+ frame.addEventListener('load',()=>{size();try{const doc=frame.contentDocument;if(doc){new ResizeObserver(size).observe(doc.body);doc.querySelectorAll('img').forEach(img=>img.addEventListener('load',size));}}catch{}});
+ if(frame.contentDocument?.readyState==='complete')size();
+});

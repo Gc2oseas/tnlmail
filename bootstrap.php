@@ -46,7 +46,7 @@ function tnl_session(): void {
                 $last=(int)($_SESSION['pin_last_activity']??time());
                 if(!isset($_SESSION['admin_id'])&&!isset($_SESSION['employee_id'])||time()-$last>900)$_SESSION['pin_locked']=true;
                 if(!empty($_SESSION['pin_locked'])){header('Location: '.tnl_url('lock.php'));exit;}
-                if($page!=='notifications.php')$_SESSION['pin_last_activity']=time();
+                if($page!=='notifications.php'&&($_SERVER['HTTP_X_TNL_BACKGROUND']??'')!=='1')$_SESSION['pin_last_activity']=time();
                 header('Refresh: 905; url='.tnl_url('lock.php'));
             }
         }

@@ -32,6 +32,14 @@ final class ImapClient {
   foreach($rows as $r){if($r['literal']===null||!preg_match('/\bUID (\d+)\b/',$r['line'],$m))continue;$headers=self::headers($r['literal']);$messages[]=['uid'=>(int)$m[1],'subject'=>$headers['subject']??'(sin asunto)','from'=>$headers['from']??'','date'=>$headers['date']??''];}
   return ['total'=>$count,'page'=>$page,'messages'=>array_reverse($messages),'validity'=>$this->validity($response)];
  }
+ public function conversation(array $headers,string $folder='INBOX'): array {
+  require_once __DIR__.'/ReplyComposer.php';$thread=ReplyComposer::thread($headers);if(!$thread)return [];
+  preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$thread['references'],$ids);$root=$ids[0][0]??'';if(ReplyComposer::messageId($root)==='')return [];
+  $this->command('EXAMINE '.$this->folder($folder));$rows=$this->command('UID SEARCH OR HEADER Message-ID '.$this->quote($root).' HEADER References '.$this->quote($root));$uids=[];
+  foreach($rows as $r)if(preg_match('/^\* SEARCH(?: (.*))?\r\n$/D',$r['line'],$m))$uids=preg_split('/ +/',trim($m[1]??''));$out=[];
+  foreach(array_slice(array_filter($uids,fn($v)=>ctype_digit($v)&&(int)$v>0),-10) as $uid){$m=$this->read((int)$uid,$folder);$t=ReplyComposer::thread($m['headers']);preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$t['references']??'',$check);if(in_array($root,$check[0],true))$out[]=$m;}
+  return $out;
+ }
  public function read(int $uid,string $folder='INBOX'): array {
   if($uid<1)throw new \InvalidArgumentException('Mensaje inválido.');$this->command('EXAMINE '.$this->folder($folder));$sizes=$this->command('UID FETCH '.$uid.' (RFC822.SIZE)');$found=false;foreach($sizes as $r)if(preg_match('/RFC822.SIZE (\d+)/',$r['line'],$m)){$found=true;if((int)$m[1]>1048576)throw new \RuntimeException('El mensaje supera el límite de lectura de 1 MB.');}if(!$found)throw new \RuntimeException('Mensaje no encontrado.');
   $rows=$this->command('UID FETCH '.$uid.' (UID BODY.PEEK[])');foreach($rows as $r)if($r['literal']!==null&&preg_match('/\bUID (\d+)\b/',$r['line'],$m)&&(int)$m[1]===$uid)return self::message($r['literal'])+MimeView::extract($r['literal']);throw new \RuntimeException('Mensaje no encontrado.');
@@ -96,7 +104,7 @@ final class ImapClient {
   if(str_contains(strtolower($headers['content-disposition']??''),'attachment'))return ['headers'=>$headers,'body'=>'','plain'=>false];
   $encoding=strtolower($headers['content-transfer-encoding']??'');if($encoding==='base64'){$decoded=base64_decode(preg_replace('/\s+/','',$body),true);$body=$decoded===false?'':$decoded;}elseif($encoding==='quoted-printable')$body=quoted_printable_decode($body);
   if(preg_match('/charset\s*=\s*"?([^;"\s]+)/i',$type,$m)&&function_exists('iconv')){$converted=@iconv($m[1],'UTF-8//IGNORE',$body);if($converted!==false)$body=$converted;}
-  $plain=str_starts_with(strtolower($type),'text/plain');if(str_starts_with(strtolower($type),'text/html'))$body=html_entity_decode(strip_tags(preg_replace('~<(script|style)\b[^>]*>.*?</\1>~is','',$body)),ENT_QUOTES|ENT_HTML5,'UTF-8');elseif(!$plain)$body='';
+  $plain=(bool)preg_match('~^text/(?:plain|markdown|x-markdown)(?:;|$)~i',$type);if(str_starts_with(strtolower($type),'text/html'))$body=html_entity_decode(strip_tags(preg_replace('~<(script|style)\b[^>]*>.*?</\1>~is','',$body)),ENT_QUOTES|ENT_HTML5,'UTF-8');elseif(!$plain)$body='';
   return ['headers'=>$headers,'body'=>$body,'plain'=>$plain];
  }
  public function close(): void {if(is_resource($this->stream)){fclose($this->stream);$this->stream=null;}}

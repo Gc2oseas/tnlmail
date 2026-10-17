@@ -13,7 +13,9 @@ final class MessageHtml {
    if(in_array($tag,['script','style','iframe','object','embed','svg','math','form','input','button','select','textarea','meta','link','base','head','video','audio','canvas','template'],true))return '';
    if($tag==='img'){
     $src=trim($node->getAttribute('src'));$alt=htmlspecialchars($node->getAttribute('alt')?:'Imagen',ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');$safe='';
-    if(str_starts_with(strtolower($src),'cid:'))$safe=$images[rawurldecode(substr($src,4))]??'';
+    if(str_starts_with(strtolower($src),'cid:'))$safe=$images[trim(rawurldecode(substr($src,4)), '<> ')]??'';else $safe=$images[$src]??'';
+    if($safe===''&&strlen($src)<=700000&&preg_match('~^data:image/(?:png|jpeg|gif|webp);base64,~i',$src)){ $bytes=base64_decode(substr($src,strpos($src,',')+1),true);$info=$bytes!==false?@getimagesizefromstring($bytes):false;if($info&&in_array($info['mime'],['image/png','image/jpeg','image/gif','image/webp'],true))$safe='data:'.$info['mime'].';base64,'.base64_encode($bytes); }
+    if(str_starts_with($src,'//'))$src='https:'.$src;if(str_starts_with(strtolower($src),'http://'))$src='https://'.substr($src,7);
     if($safe!==''&&!preg_match('~^data:image/(?:png|jpeg|gif|webp);base64,[A-Za-z0-9+/=]+$~D',$safe))$safe='';
     if($safe===''&&$remote&&self::https($src))$safe=$src;
     if($safe==='')return '<span class="mail-image-placeholder">'.$alt.' · imagen externa o no disponible</span>';

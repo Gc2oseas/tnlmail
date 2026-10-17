@@ -17,10 +17,11 @@ final class MimeView {
   if($encoding==='base64'){$decoded=base64_decode(preg_replace('/\s+/','',$body),true);$body=$decoded===false?'':$decoded;}elseif($encoding==='quoted-printable')$body=quoted_printable_decode($body);
   if(preg_match('~^(image/(?:png|jpeg|gif|webp))(?:;|$)~i',$type,$m)){
    $cid=trim($headers['content-id']??'',"<> \t");$info=@getimagesizefromstring($body);
-   if($cid!==''&&strlen($cid)<250&&strlen($body)<=524288&&$info&&in_array(strtolower($info['mime']??''),['image/png','image/jpeg','image/gif','image/webp'],true))$out['inline_images'][$cid]='data:'.strtolower($info['mime']).';base64,'.base64_encode($body);
+   if(strlen($cid)<250&&strlen($body)<=524288&&$info&&in_array(strtolower($info['mime']??''),['image/png','image/jpeg','image/gif','image/webp'],true)){ $url='data:'.strtolower($info['mime']).';base64,'.base64_encode($body);if($cid!=='')$out['inline_images'][$cid]=$url;$location=trim($headers['content-location']??'');if($location!==''&&strlen($location)<2048)$out['inline_images'][$location]=$url; }
    return;
   }
   if(str_contains(strtolower($headers['content-disposition']??''),'attachment'))return;
+  if(preg_match('~^text/(?:markdown|x-markdown)(?:;|$)~i',$type)&&$out['html']===''){require_once dirname(__DIR__).'/ThirdParty/Parsedown/Parsedown.php';$out['html']=(new \Parsedown())->setSafeMode(true)->text($body);}
   if(preg_match('~^text/html(?:;|$)~i',$type)&&$out['html']===''){
    if(preg_match('/charset\s*=\s*"?([^;"\s]+)/i',$type,$m)&&function_exists('iconv')){$converted=@iconv($m[1],'UTF-8//IGNORE',$body);if($converted!==false)$body=$converted;}
    $out['html']=$body;

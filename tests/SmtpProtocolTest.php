@@ -25,3 +25,5 @@ $unsafe=new FakeSmtp();ExternalMail::send($config,'recipient@example.test','Test
 $starttls=ExternalMail::smtp(array_replace($config,['smtp_port'=>587]),new FakeSmtp());
 if($starttls->Port!==587||$starttls->SMTPSecure!==\PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS)throw new RuntimeException('STARTTLS configuration failed');
 echo "PASS: SMTP 587 explicitly requires STARTTLS\n";
+
+$htmlSmtp=new FakeSmtp();ExternalMail::send($config,'recipient@example.test','Rich','<p><b>Rich body</b></p><script>alert(1)</script>',$htmlSmtp,[],'html');if(!str_contains($htmlSmtp->payload,'multipart/alternative')||!str_contains($htmlSmtp->payload,'text/html')||!str_contains($htmlSmtp->payload,'text/plain')||str_contains($htmlSmtp->payload,'<script>'))throw new RuntimeException('HTML MIME failed');echo "PASS: rich SMTP contains sanitized HTML and plain alternative\n";

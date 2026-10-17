@@ -26,3 +26,5 @@ InternalMail::delete($db,2,1);
 assert(count(InternalMail::list($db,2,'inbox'))===0,'Bob deleted own copy');
 assert(count(InternalMail::list($db,1,'sent'))===1,'Alice still has sent copy');
 echo "PASS: internal mail access, reply and deletion\n";
+
+InternalMail::send($db,2,'alice@example.test','Re: Hola','<p><b>HTML reply</b></p>',2,'html');$rich=InternalMail::read($db,1,3);assert($rich['format']==='html');assert(count(InternalMail::conversation($db,1,3))===3);assert(count(InternalMail::conversation($db,2,3))===2);assert(InternalMail::conversation($db,3,3)===[]);echo "PASS: rich internal replies form a conversation scoped to visible participant messages\n";

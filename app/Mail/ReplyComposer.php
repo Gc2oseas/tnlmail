@@ -8,7 +8,7 @@ final class ReplyComposer {
  }
  public static function thread(array $headers): array {
   $id=self::messageId((string)($headers['message-id']??''));if($id==='')return [];
-  preg_match_all('/<[^<>\s\x00-\x1f\x7f]+@[^<>\s\x00-\x1f\x7f]+>/',(string)($headers['references']??''),$matches);
+  preg_match_all('/<[^<>\s\x00-\x1f\x7f]+@[^<>\s\x00-\x1f\x7f]+>/',(string)($headers['references']??'').' '.self::messageId((string)($headers['in-reply-to']??'')),$matches);
   $refs=array_values(array_unique(array_filter($matches[0]??[],fn($v)=>self::messageId($v)!==''&&$v!==$id)));$refs[]=$id;
   while(count($refs)>1&&strlen(implode(' ',$refs))>800)array_shift($refs);
   return ['in_reply_to'=>$id,'references'=>implode(' ',$refs)];

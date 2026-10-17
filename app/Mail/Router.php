@@ -29,13 +29,13 @@ final class Router {
  private static function log(\PDO $db,string $actor,string $to,string $route,string $status): void {
   self::init($db);$db->prepare('INSERT INTO mail_routes(actor,recipient,route,status,created_at) VALUES(?,?,?,?,?)')->execute([$actor,substr($to,0,254),$route,$status,gmdate('c')]);
  }
- public static function send(\PDO $db,string $actor,int $employeeId,string $to,string $subject,string $body,bool $canExternal,callable $smtp,?int $replyTo=null): array {
+ public static function send(\PDO $db,string $actor,int $employeeId,string $to,string $subject,string $body,bool $canExternal,callable $smtp,?int $replyTo=null,string $format='plain'): array {
   self::init($db);
   try{$plan=self::plan($db,$to);}catch(\InvalidArgumentException $e){self::log($db,$actor,$to,'blocked','rejected');throw $e;}
   if($plan['route']==='internal'){
    if($employeeId<1){self::log($db,$actor,$to,'internal','rejected');throw new \InvalidArgumentException('Para enviar al equipo utiliza una identidad de usuario, no la cuenta de administración.');}
    $db->beginTransaction();
-   try{InternalMail::send($db,$employeeId,$plan['recipient'],$subject,$body,$replyTo);self::log($db,$actor,$plan['recipient'],'internal','delivered');$db->commit();}
+   try{InternalMail::send($db,$employeeId,$plan['recipient'],$subject,$body,$replyTo,$format);self::log($db,$actor,$plan['recipient'],'internal','delivered');$db->commit();}
    catch(\Throwable $e){$db->rollBack();throw $e;}
    return ['route'=>'internal','message_id'=>'tnl-local:'.bin2hex(random_bytes(16))];
   }

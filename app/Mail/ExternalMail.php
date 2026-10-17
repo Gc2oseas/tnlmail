@@ -14,9 +14,9 @@ final class ExternalMail {
   $out=[];$imap=new ImapClient($config);try{$imap->connect();$out['imap']='Autenticación correcta (TLS, 993).';}catch(\Throwable $e){$out['imap']=$e->getMessage();}finally{$imap->close();}
   $mail=null;try{$mail=self::smtp($config);if(!$mail->smtpConnect())throw new \RuntimeException('Falló autenticación SMTP.');$out['smtp']='Autenticación correcta (TLS, '.($config['smtp_port']??465).').';}catch(\Throwable $e){$out['smtp']='SMTP: no se pudo autenticar con TLS en el servidor configurado. Comprueba servidor, cuenta y contraseña.';}finally{if($mail)$mail->smtpClose();}return $out;
  }
- public static function send(array $config,string $to,string $subject,string $body,?SMTP $transport=null,array $thread=[]): string {
+ public static function send(array $config,string $to,string $subject,string $body,?SMTP $transport=null,array $thread=[],string $format='plain'): string {
   if(!filter_var($to,FILTER_VALIDATE_EMAIL)||preg_match('/[\r\n\x00]/',$to.$subject)||strlen($subject)<1||strlen($subject)>200||strlen($body)<1||strlen($body)>50000)throw new \InvalidArgumentException('Revisa destinatario, asunto (1–200) y mensaje (1–50000 caracteres).');
-  $mail=self::smtp($config,$transport);try{$mail->addAddress($to);$mail->Subject=$subject;$mail->Body=$body;$mail->isHTML(false);
+  $mail=self::smtp($config,$transport);try{$mail->addAddress($to);$mail->Subject=$subject;require_once __DIR__.'/MessageBody.php';if(!in_array($format,['plain','html','markdown'],true))throw new \InvalidArgumentException('Formato inválido.');$html=MessageBody::html($body,$format);$mail->Body=$html!==''?$html:$body;$mail->isHTML($html!=='');if($html!=='')$mail->AltBody=MessageBody::plain($body,$format);
    $reply=ReplyComposer::messageId((string)($thread['in_reply_to']??''));if($reply!==''){$safe=ReplyComposer::thread(['message-id'=>$reply,'references'=>(string)($thread['references']??'')]);$mail->addCustomHeader('In-Reply-To',$safe['in_reply_to']);$mail->addCustomHeader('References',$safe['references']);}
    $mail->send();return $mail->getLastMessageID();}catch(\Throwable $e){throw new \RuntimeException('No se confirmó el envío SMTP. Revisa el servidor antes de volver a intentarlo para evitar duplicados.');}finally{$mail->smtpClose();}
  }

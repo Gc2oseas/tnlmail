@@ -7,10 +7,10 @@ final class Workspace {
   return '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'.($paths[$name]??$paths['mail']).'</svg>';
  }
  public static function sidebar(string $role,string $active,string $name=''): void {
-  self::actions($role);
+  self::actions($role);if($role==='employee')echo '<button type="button" class="floating-chat-launcher" data-chat-toggle aria-expanded="false" aria-controls="team-chat-panel">'.self::icon('mail').'<span>Chat del equipo</span><span class="nav-count" data-unread-count="internal" aria-label="Mensajes nuevos">…</span></button><aside id="team-chat-panel" class="floating-chat-panel" hidden aria-label="Chat del equipo"><header><strong>Chat del equipo</strong><button type="button" data-chat-close aria-label="Cerrar chat">Cerrar</button></header><iframe title="Conversaciones del equipo" data-team-chat data-chat-src="'.htmlspecialchars(\tnl_url('chat.php'),ENT_QUOTES,'UTF-8').'"></iframe></aside>';
   $admin=$role==='admin';$links=$admin?[
    ['home','Inicio','admin/','home'],['mail','Correo externo','external.php?as=admin','external'],['users','Equipo','?page=users','users'],['building','Empresa','?page=settings','settings'],
-  ]:[['home','Mi espacio','employee.php','home'],['mail','Correo externo','external.php','external'],['mail','Correo interno','mail.php','internal']];
+  ]:[['home','Mi espacio','employee.php','home'],['mail','Correo externo','external.php','external']];
   // Los enlaces de administración siempre parten de index.php, también desde otras pantallas.
   if($admin){$links[2][2]='admin/?page=users';$links[3][2]='admin/?page=settings';}
   $secondary=$admin?[['mail','Recuperar correos','admin/?page=trash','trash'],['shield','Seguridad','recovery.php','security'],['update','Actualizaciones','updates.php','updates'],['code','Despliegue GitHub','deployment.php','deployment']]:[['shield','Seguridad','recovery.php','security']];

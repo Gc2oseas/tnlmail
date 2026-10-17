@@ -47,7 +47,7 @@ final class ImapClient {
   preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$thread['references'],$ids);$root=$ids[0][0]??'';if(ReplyComposer::messageId($root)==='')return [];
   $this->command('EXAMINE '.$this->folder($folder));$rows=$this->command('UID SEARCH OR HEADER Message-ID '.$this->quote($root).' HEADER References '.$this->quote($root));$uids=[];
   foreach($rows as $r)if(preg_match('/^\* SEARCH(?: (.*))?\r\n$/D',$r['line'],$m))$uids=preg_split('/ +/',trim($m[1]??''));$out=[];
-  foreach(array_slice(array_filter($uids,fn($v)=>ctype_digit($v)&&(int)$v>0),-10) as $uid){$m=$this->read((int)$uid,$folder);$t=ReplyComposer::thread($m['headers']);preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$t['references']??'',$check);if(in_array($root,$check[0],true))$out[]=$m;}
+  foreach(array_slice(array_filter($uids,fn($v)=>ctype_digit($v)&&(int)$v>0),-30) as $uid){$m=$this->read((int)$uid,$folder);$t=ReplyComposer::thread($m['headers']);preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$t['references']??'',$check);if(in_array($root,$check[0],true))$out[]=$m;}
   return $out;
  }
  public function read(int $uid,string $folder='INBOX'): array {

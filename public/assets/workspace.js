@@ -41,10 +41,12 @@ document.addEventListener('click',event=>{const button=event.target.closest('[da
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.mail-row-wrap.actions-open').forEach(row=>{row.classList.remove('actions-open');row.querySelector('[data-mail-actions]')?.setAttribute('aria-expanded','false');});});
 function bindMailFrames(){document.querySelectorAll('iframe[data-mail-view]').forEach(frame=>{if(frame.dataset.sizeBound)return;frame.dataset.sizeBound='1';
- function size(){try{const doc=frame.contentDocument;if(doc)frame.height=String(Math.max(70,Math.min(1400,Math.max(doc.body.scrollHeight,doc.body.getBoundingClientRect().height)+16)));}catch{}}
+ function size(){try{const doc=frame.contentDocument;if(doc)frame.height=String(Math.max(42,Math.min(1400,Math.max(doc.body.scrollHeight,doc.body.getBoundingClientRect().height)+6)));}catch{}}
  frame.addEventListener('load',()=>{size();try{const doc=frame.contentDocument;if(doc){frame.tnlResizeObserver=new ResizeObserver(size);frame.tnlResizeObserver.observe(doc.body);doc.querySelectorAll('img').forEach(img=>img.addEventListener('load',size));}}catch{}});
  if(frame.contentDocument?.readyState==='complete')size();
 });}
 bindMailFrames();window.addEventListener('tnl-mail-refreshed',bindMailFrames);
 
-if(document.querySelector('.account-actions')&&!document.body.classList.contains('composer-popup')){const script=document.createElement('script');script.src=new URL('notifications.js?v=0.11.0',document.currentScript.src).href;script.defer=true;document.head.append(script);}
+if(document.querySelector('.account-actions')&&!document.body.classList.contains('composer-popup')){const script=document.createElement('script');script.src=new URL('notifications.js?v=0.12.0',document.currentScript.src).href;script.defer=true;document.head.append(script);}
+
+if(document.querySelector('[data-chat-toggle]')&&!document.body.classList.contains('composer-popup')){const script=document.createElement('script');script.src=new URL('chat.js?v=0.12.0',document.currentScript.src).href;script.defer=true;document.head.append(script);}

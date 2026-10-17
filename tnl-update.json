@@ -36,7 +36,7 @@
         "app/UI/MessageHtml.php": "b7197a2f9c20a24b20fefe1ac2778ff847748db8fb026514ecad9bfea1d4a932",
         "app/UI/PrintMessage.php": "286310571422828d5f5466efd44be0bfea54881e6ce773ae8e5d86998a9f427f",
         "app/UI/Workspace.php": "d01b9aa4a89854703f7b788b00225a3af80f81419b4b4f077845ccdafe562cb2",
-        "bootstrap.php": "61d76e828f42da1c0a3cfeb6f49c8f7558b726b1003bbde706b52b8ea50b5d28",
+        "bootstrap.php": "edb042c40add9e82bcccc984a70ad74b8608f5fefb9553195702e0b12406ddf3",
         "public/admin.php": "e9fe2c07166dacf8953818b6b2077e4e487e77d7dcf5a2b77ff586903f901f15",
         "public/admin/index.php": "16605f0a88b2f887d9ce9ae4e73527fba5e98332cce748854bca84328a85c7d7",
         "public/assets/app.css": "2aa6ad0815b567c19f19a046757596d68fe46c1a9129ae9205c22b49205dfaf3",

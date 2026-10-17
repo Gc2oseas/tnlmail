@@ -24,6 +24,23 @@ function tnl_session(): void {
         session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off','httponly'=>true,'samesite'=>'Lax']);
     }
     session_start();
+    if(PHP_SAPI!=='cli'&&is_file(tnl_path('storage/system.sqlite'))){
+        $page=basename((string)($_SERVER['SCRIPT_FILENAME']??''));
+        $device=(string)($_COOKIE['tnl_device']??'');
+        if($device!==''&&!in_array($page,['mcp.php','updates.php','lock.php'],true)){
+            if(($_POST['action']??'')==='logout'){
+                require_once TNL_ROOT.'/app/Admin/DeviceLock.php';
+                (new \TNL\Admin\DeviceLock(tnl_db()))->forget($device);
+                setcookie('tnl_device','',['expires'=>time()-3600,'path'=>tnl_url(''),'httponly'=>true,'samesite'=>'Strict']);
+            }else{
+                $last=(int)($_SESSION['pin_last_activity']??time());
+                if(!isset($_SESSION['admin_id'])&&!isset($_SESSION['employee_id'])||time()-$last>900)$_SESSION['pin_locked']=true;
+                if(!empty($_SESSION['pin_locked'])){header('Location: '.tnl_url('lock.php'));exit;}
+                $_SESSION['pin_last_activity']=time();
+                header('Refresh: 905; url='.tnl_url('lock.php'));
+            }
+        }
+    }
 }
 function tnl_csrf(): string {
     tnl_session();
@@ -36,4 +53,12 @@ function tnl_check_csrf(): void {
 }
 function tnl_escape(string $value): string {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function tnl_url(string $route): string {
+    $script=str_replace('\\','/',(string)($_SERVER['SCRIPT_NAME']??'/index.php'));
+    $base=preg_replace('~/(?:admin/)?[^/]*$~','/',$script);
+    $requested=(string)(parse_url((string)($_SERVER['REQUEST_URI']??''),PHP_URL_PATH)??'');
+    if(str_ends_with($base,'/public/')&&!str_starts_with($requested,$base))$base=substr($base,0,-7);
+    return $base.$route;
 }

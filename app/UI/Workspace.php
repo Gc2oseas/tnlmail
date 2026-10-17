@@ -8,16 +8,17 @@ final class Workspace {
  }
  public static function sidebar(string $role,string $active,string $name=''): void {
   $admin=$role==='admin';$links=$admin?[
-   ['home','Inicio','index.php','home'],['mail','Correo externo','external.php?as=admin','external'],['users','Equipo','?page=users','users'],['building','Empresa','?page=settings','settings'],
+   ['home','Inicio','admin/','home'],['mail','Correo externo','external.php?as=admin','external'],['users','Equipo','?page=users','users'],['building','Empresa','?page=settings','settings'],
   ]:[['home','Mi espacio','employee.php','home'],['mail','Correo externo','external.php','external'],['mail','Correo interno','mail.php','internal']];
   // Los enlaces de administración siempre parten de index.php, también desde otras pantallas.
-  if($admin){$links[2][2]='index.php?page=users';$links[3][2]='index.php?page=settings';}
-  $secondary=$admin?[['shield','Seguridad','recovery.php','security'],['update','Actualizaciones','updates.php','updates'],['code','Despliegue GitHub','deployment.php','deployment']]:[['shield','Seguridad','recovery.php','security']];
-  echo '<aside class="sidebar workspace-sidebar"><a class="brand" href="'.($admin?'index.php':'employee.php').'"><span class="brand-mark">'.self::icon('mail').'</span><span>TNL<span class="brand-light"> Mail</span></span></a><button type="button" class="nav-toggle button-ghost" aria-label="Abrir navegación" aria-expanded="false" aria-controls="workspace-navigation" data-nav-toggle>Menú <span aria-hidden="true">☰</span></button><div class="workspace-menu" id="workspace-navigation"><p class="nav-caption">ESPACIO DE TRABAJO</p><nav aria-label="Principal">';
+  if($admin){$links[2][2]='admin/?page=users';$links[3][2]='admin/?page=settings';}
+  $secondary=$admin?[['mail','Recuperar correos','admin/?page=trash','trash'],['shield','Seguridad','recovery.php','security'],['update','Actualizaciones','updates.php','updates'],['code','Despliegue GitHub','deployment.php','deployment']]:[['shield','Seguridad','recovery.php','security']];
+  $secondary[]=['shield','Bloqueo del dispositivo','lock.php','lock'];
+  echo '<aside class="sidebar workspace-sidebar"><a class="brand" href="'.htmlspecialchars(\tnl_url($admin?'admin/':'index.php'),ENT_QUOTES,'UTF-8').'"><span class="brand-mark">'.self::icon('mail').'</span><span>TNL<span class="brand-light"> Mail</span></span></a><button type="button" class="nav-toggle button-ghost" aria-label="Abrir navegación" aria-expanded="false" aria-controls="workspace-navigation" data-nav-toggle>Menú <span aria-hidden="true">☰</span></button><div class="workspace-menu" id="workspace-navigation"><p class="nav-caption">ESPACIO DE TRABAJO</p><nav aria-label="Principal">';
   foreach($links as [$icon,$label,$href,$key])self::link($icon,$label,$href,$active===$key);
   echo '</nav><p class="nav-caption nav-caption-secondary">'.($admin?'ADMINISTRACIÓN':'TU CUENTA').'</p><nav aria-label="Configuración">';foreach($secondary as [$icon,$label,$href,$key])self::link($icon,$label,$href,$active===$key);
   echo '</nav><div class="sidebar-footer"><span class="user-avatar">'.($admin?'A':'U').'</span><div><strong>'.htmlspecialchars($name?:($admin?'Administración':'Mi cuenta'),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</strong><span>'.($admin?'Administrador':'Espacio personal').'</span></div></div></div></aside>';
  }
- private static function link(string $icon,string $label,string $href,bool $active): void {echo '<a class="nav'.($active?' active':'').'" href="'.htmlspecialchars($href,ENT_QUOTES,'UTF-8').'"'.($active?' aria-current="page"':'').'>'.self::icon($icon).'<span>'.$label.'</span></a>';}
+ private static function link(string $icon,string $label,string $href,bool $active): void {echo '<a class="nav'.($active?' active':'').'" href="'.htmlspecialchars(\tnl_url($href),ENT_QUOTES,'UTF-8').'"'.($active?' aria-current="page"':'').'>'.self::icon($icon).'<span>'.$label.'</span></a>';}
  public static function authBrand(): void {echo '<a class="auth-brand" href="index.php"><span class="brand-mark">'.self::icon('mail').'</span><span>TNL Mail</span></a>';}
 }

@@ -33,6 +33,11 @@ final class ReplyComposer {
   }
   return ['to'=>'','subject'=>$subject,'body'=>"\n\n----- Mensaje reenviado -----\n".self::summary($h)."\n".$text,'thread'=>[]];
  }
+ public static function htmlDraft(array $original,string $mode): string {
+  require_once dirname(__DIR__).'/UI/MessageHtml.php';$summary=htmlspecialchars(self::summary($original['headers']),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');$content=!empty($original['html'])?\TNL\UI\MessageHtml::fragment($original['html'],$original['inline_images']??[],true):'<pre>'.htmlspecialchars((string)($original['body']??''),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</pre>';
+  if(strlen($content)>40000)$content='<pre>'.htmlspecialchars(self::cut((string)($original['body']??''),20000),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</pre><p>[Original recortado]</p>';
+  return '<p><br></p><blockquote><p>'.($mode==='reply'?'Mensaje original':'Mensaje reenviado').'</p><pre>'.$summary.'</pre>'.$content.'</blockquote>';
+ }
  private static function summary(array $h): string {
   $lines=[];foreach(['from'=>'De','to'=>'Para','date'=>'Fecha','subject'=>'Asunto'] as $key=>$label)if(isset($h[$key]))$lines[]=$label.': '.self::cut(preg_replace('/[\r\n\x00]+/',' ',(string)$h[$key]),1000);return implode("\n",$lines)."\n";
  }

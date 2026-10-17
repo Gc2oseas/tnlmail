@@ -1,0 +1,12 @@
+<?php
+declare(strict_types=1);
+require dirname(__DIR__).'/app/Mail/ExternalMail.php';require dirname(__DIR__).'/app/UI/MessageHtml.php';require dirname(__DIR__).'/app/Mail/PlainView.php';
+use TNL\UI\MessageHtml;use TNL\Mail\ReplyComposer;use TNL\Mail\MimeView;
+function compactCheck(bool $ok,string $label):void{if(!$ok)throw new RuntimeException($label);echo "PASS: $label\n";}
+$table='<table width="600" style="height:9999px;position:fixed;background:url(javascript:bad)"><tr><td width="25%"></td><td width="50%">Middle</td><td width="25%">Right</td></tr></table>';$safe=MessageHtml::fragment($table);compactCheck(substr_count($safe,'<td')===3,'empty table cells retain column alignment');compactCheck(str_contains($safe,'width:25%;')&&str_contains($safe,'width:50%;'),'safe column widths are preserved');compactCheck(!str_contains($safe,'9999')&&!str_contains($safe,'position')&&!str_contains($safe,'javascript'),'layout heights and active CSS are removed');
+$quoted=MessageHtml::fragment('<p>Now</p><blockquote><p>Old</p><table><tr><td>A</td><td>B</td></tr></table></blockquote>',[],false,true);compactCheck(str_contains($quoted,'<details class="quoted-mail">')&&!str_contains($quoted,' open')&&substr_count($quoted,'<td')===2,'quoted history folds without losing its tables');
+$raw="Content-Type: text/plain; charset=UTF-8; format=flowed; delsp=yes\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\nLong li=20\r\nne\r\n> Quoted line\r\n>> Nested quote";$m=MimeView::extract($raw);compactCheck(str_contains($m['html'],'Long line')&&str_contains($m['html'],'<blockquote>'),'flowed text is decoded before quote rendering');compactCheck(!str_contains($m['html'],'&gt;'),'quote markers become structure rather than visible greater-than characters');
+$reply=ReplyComposer::htmlDraft(['headers'=>['from'=>'a@example.test'],'body'=>'> fallback','html'=>$table],'reply');compactCheck(substr_count($reply,'<td')===3&&!str_contains($reply,'&gt; fallback'),'HTML reply preserves original table rather than a plain-text quote');
+$legacy=MimeView::extract("Content-Type: text/html; charset=iso-8859-1\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n<p>Informaci=F3n</p>");compactCheck(str_contains($legacy['html'],'Información'),'legacy charset is converted exactly once');
+
+compactCheck(MessageHtml::fragment('<div style="display:none!important;height:9000px">Hidden preheader</div><p>Visible</p>')==='<p>Visible</p>','hidden preheaders stay hidden after CSS sanitization');

@@ -41,7 +41,7 @@ document.querySelectorAll('[data-mail-actions]').forEach(button=>button.addEvent
 }));
 document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.mail-row-wrap.actions-open').forEach(row=>{row.classList.remove('actions-open');row.querySelector('[data-mail-actions]')?.setAttribute('aria-expanded','false');});});
 document.querySelectorAll('iframe[data-mail-view]').forEach(frame=>{
- function size(){try{const doc=frame.contentDocument;if(doc)frame.height=String(Math.max(140,Math.min(70000,doc.documentElement.scrollHeight+16)));}catch{}}
+ function size(){try{const doc=frame.contentDocument;if(doc)frame.height=String(Math.max(70,Math.min(1400,Math.max(doc.body.scrollHeight,doc.body.getBoundingClientRect().height)+16)));}catch{}}
  frame.addEventListener('load',()=>{size();try{const doc=frame.contentDocument;if(doc){new ResizeObserver(size).observe(doc.body);doc.querySelectorAll('img').forEach(img=>img.addEventListener('load',size));}}catch{}});
  if(frame.contentDocument?.readyState==='complete')size();
 });

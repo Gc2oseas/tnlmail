@@ -4,7 +4,7 @@ namespace TNL\Mail;
 final class MimeView {
  public static function extract(string $raw): array {
   $result=['html'=>'','inline_images'=>[]];$parts=0;
-  self::walk($raw,$result,$parts,0);return $result;
+  self::walk($raw,$result,$parts,0);if($result['html']===''&&isset($result['plain_html'])){$result['html']=$result['plain_html'];$result['plain_view']=true;}unset($result['plain_html']);return $result;
  }
  private static function walk(string $raw,array &$out,int &$parts,int $depth): void {
   if(++$parts>80||$depth>8)return;
@@ -21,9 +21,10 @@ final class MimeView {
    return;
   }
   if(str_contains(strtolower($headers['content-disposition']??''),'attachment'))return;
+  if(preg_match('~^text/\w+~i',$type)&&preg_match('/charset\s*=\s*"?([^;"\s]+)/i',$type,$cm)&&function_exists('iconv')){$converted=@iconv($cm[1],'UTF-8//IGNORE',$body);if($converted!==false)$body=$converted;}
+  if(preg_match('~^text/plain(?:;|$)~i',$type)&&!isset($out['plain_html'])){require_once __DIR__.'/PlainView.php';$out['plain_html']=PlainView::html($body,(bool)preg_match('/format\s*=\s*"?flowed/i',$type),(bool)preg_match('/delsp\s*=\s*"?yes/i',$type));}
   if(preg_match('~^text/(?:markdown|x-markdown)(?:;|$)~i',$type)&&$out['html']===''){require_once dirname(__DIR__).'/ThirdParty/Parsedown/Parsedown.php';$out['html']=(new \Parsedown())->setSafeMode(true)->text($body);}
   if(preg_match('~^text/html(?:;|$)~i',$type)&&$out['html']===''){
-   if(preg_match('/charset\s*=\s*"?([^;"\s]+)/i',$type,$m)&&function_exists('iconv')){$converted=@iconv($m[1],'UTF-8//IGNORE',$body);if($converted!==false)$body=$converted;}
    $out['html']=$body;
   }
  }

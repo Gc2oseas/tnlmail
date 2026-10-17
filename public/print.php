@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';require_once dirname(__DIR__).'/app/Mail/MessageBody.php';
 require_once dirname(__DIR__).'/app/Auth/SessionUser.php';require_once dirname(__DIR__).'/app/Mail/ExternalMail.php';require_once dirname(__DIR__).'/app/Mail/AccountAccess.php';require_once dirname(__DIR__).'/app/Mail/InternalMail.php';require_once dirname(__DIR__).'/app/UI/PrintMessage.php';
-header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');header("Content-Security-Policy: default-src 'none'; style-src 'self'; img-src data: https:; script-src 'self'; base-uri 'none'; frame-ancestors 'none'");
+header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline'; img-src data: https:; script-src 'self'; base-uri 'none'; frame-ancestors 'none'");
 tnl_session();$db=tnl_db();$identity=\TNL\Auth\SessionUser::require($db);
 try{
  if(($_GET['kind']??'')==='internal'){

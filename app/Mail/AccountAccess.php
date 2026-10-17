@@ -13,7 +13,7 @@ final class AccountAccess {
   if($identity['role']==='employee'){$assigned=(new Mailboxes($db))->listFor($identity['id']);if($assigned)return self::owner($db,$store,$identity,['box'=>$assigned[0]['id']]);}
   if($primary)return $principal;$accounts=(new PersonalAccounts($db,$store))->list($principal);return $accounts?self::owner($db,$store,$identity,['personal'=>$accounts[0]['id']]):$principal;
  }
- public static function personal(\PDO $db,string $owner,?array $account): bool {if(!$account||str_starts_with($owner,'mailbox:')||($owner===\TNL\Admin\Settings::get($db,'reception_owner')&&\TNL\Admin\Settings::get($db,'reception_enabled')==='1'))return false;return str_starts_with($owner,'personal:')||!PersonalAccounts::corporate($db,$account['email']);}
+ public static function personal(\PDO $db,string $owner,?array $account): bool {return $account!==null&&!PersonalAccounts::corporate($db,$account['email']);}
  public static function owner(\PDO $db,ExternalAccount $store,array $identity,array $input): string {
   $personal=(int)($input['personal']??0);$box=(int)($input['box']??0);
   if($personal>0)return (new PersonalAccounts($db,$store))->owner($personal,$identity['principal']);

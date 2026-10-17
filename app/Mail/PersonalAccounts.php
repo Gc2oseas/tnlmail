@@ -8,11 +8,7 @@ final class PersonalAccounts {
   $db->exec('CREATE TABLE IF NOT EXISTS personal_mailboxes(id INTEGER PRIMARY KEY AUTOINCREMENT,principal TEXT NOT NULL,label TEXT NOT NULL,created_at TEXT NOT NULL)');
  }
  public static function corporate(\PDO $db,string $email): bool {
-  $domain=strtolower(\TNL\Admin\Settings::get($db,'company_domain'));
-  if($domain!==''&&strtolower(substr(strrchr($email,'@')?:'',1))===$domain)return true;
-  $exists=$db->query("SELECT 1 FROM sqlite_master WHERE name='users' AND type='table'")->fetchColumn();
-  if($exists){$q=$db->prepare('SELECT 1 FROM users WHERE internal_address=? COLLATE NOCASE');$q->execute([$email]);if($q->fetchColumn())return true;}
-  return false;
+  $domain=strtolower(trim(\TNL\Admin\Settings::get($db,'company_domain')));return $domain!==''&&strtolower(substr(strrchr(trim($email),'@')?:'',1))===$domain;
  }
  public function list(string $principal): array {$q=$this->db->prepare('SELECT id,label FROM personal_mailboxes WHERE principal=? ORDER BY id');$q->execute([$principal]);return $q->fetchAll(\PDO::FETCH_ASSOC);}
  public function allowed(int $id,string $principal): bool {$q=$this->db->prepare('SELECT 1 FROM personal_mailboxes WHERE id=? AND principal=?');$q->execute([$id,$principal]);return (bool)$q->fetchColumn();}

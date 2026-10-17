@@ -8,11 +8,12 @@ final class InternalMail {
   $cols=$db->query('PRAGMA table_info(internal_messages)')->fetchAll(\PDO::FETCH_ASSOC);
   if(!in_array('reply_to_id',array_column($cols,'name'),true))$db->exec('ALTER TABLE internal_messages ADD COLUMN reply_to_id INTEGER');
   if(!in_array('format',array_column($cols,'name'),true))$db->exec("ALTER TABLE internal_messages ADD COLUMN format TEXT NOT NULL DEFAULT 'plain'");
+  foreach(['recipients_to','recipients_cc','delivery_kind'] as $column)if(!in_array($column,array_column($cols,'name'),true))$db->exec("ALTER TABLE internal_messages ADD COLUMN $column TEXT NOT NULL DEFAULT ''");
   foreach(['archived_by_sender','archived_by_recipient'] as $column)if(!in_array($column,array_column($cols,'name'),true))$db->exec("ALTER TABLE internal_messages ADD COLUMN $column INTEGER NOT NULL DEFAULT 0");
   $db->exec('CREATE INDEX IF NOT EXISTS idx_internal_inbox ON internal_messages(recipient_id,deleted_by_recipient,id)');
   $db->exec('CREATE INDEX IF NOT EXISTS idx_internal_sent ON internal_messages(sender_id,deleted_by_sender,id)');
  }
- public static function send(\PDO $db,int $sender,string $recipient,string $subject,string $body,?int $replyTo=null,string $format='plain'): void {
+ public static function send(\PDO $db,int $sender,string $recipient,string $subject,string $body,?int $replyTo=null,string $format='plain',array $metadata=[]): void {
   self::init($db);if(!in_array($format,['plain','html','markdown'],true))throw new \InvalidArgumentException('Formato inválido.');
   $recipient=strtolower(trim($recipient));$subject=trim($subject);$body=trim($body);
   if(strlen($subject)<1||strlen($subject)>200||strlen($body)<1||strlen($body)>50000)throw new \InvalidArgumentException('Asunto o mensaje inválido.');
@@ -22,8 +23,8 @@ final class InternalMail {
    $previous=self::read($db,$sender,$replyTo);
    if(!$previous||(int)$previous['sender_id']!==(int)$to&&(int)$previous['recipient_id']!==(int)$to)throw new \InvalidArgumentException('Conversación inválida.');
   }
-  $s=$db->prepare('INSERT INTO internal_messages(sender_id,recipient_id,subject,body,created_at,reply_to_id,format) VALUES(?,?,?,?,?,?,?)');
-  $s->execute([$sender,(int)$to,$subject,$body,gmdate('c'),$replyTo,$format]);
+  $s=$db->prepare('INSERT INTO internal_messages(sender_id,recipient_id,subject,body,created_at,reply_to_id,format,recipients_to,recipients_cc,delivery_kind) VALUES(?,?,?,?,?,?,?,?,?,?)');
+  $s->execute([$sender,(int)$to,$subject,$body,gmdate('c'),$replyTo,$format,json_encode($metadata['to']??[$recipient]),json_encode($metadata['cc']??[]),$metadata['kind']??'new']);
  }
  public static function list(\PDO $db,int $user,string $folder): array {
   self::init($db);$sent=$folder==='sent';

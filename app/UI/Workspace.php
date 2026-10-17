@@ -7,6 +7,7 @@ final class Workspace {
   return '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'.($paths[$name]??$paths['mail']).'</svg>';
  }
  public static function sidebar(string $role,string $active,string $name=''): void {
+  self::actions($role);
   $admin=$role==='admin';$links=$admin?[
    ['home','Inicio','admin/','home'],['mail','Correo externo','external.php?as=admin','external'],['users','Equipo','?page=users','users'],['building','Empresa','?page=settings','settings'],
   ]:[['home','Mi espacio','employee.php','home'],['mail','Correo externo','external.php','external'],['mail','Correo interno','mail.php','internal']];
@@ -20,6 +21,10 @@ final class Workspace {
   foreach($links as [$icon,$label,$href,$key])self::link($icon,$label,$href,$active===$key);
   echo '</nav><p class="nav-caption nav-caption-secondary">'.($admin?'ADMINISTRACIÓN':'TU CUENTA').'</p><nav aria-label="Configuración">';foreach($secondary as [$icon,$label,$href,$key])self::link($icon,$label,$href,$active===$key);
   echo '</nav><div class="sidebar-footer"><a href="'.htmlspecialchars(\tnl_url('profile.php'),ENT_QUOTES,'UTF-8').'">Mi perfil</a><span class="user-avatar">'.($admin?'A':'U').'</span><div><strong>'.htmlspecialchars($name?:($admin?'Administración':'Mi cuenta'),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</strong><span>'.($admin?'Administrador':'Espacio personal').'</span></div></div></div></aside>';
+ }
+ public static function actions(string $role): void {
+  $url=fn($p)=>htmlspecialchars(\tnl_url($p),ENT_QUOTES,'UTF-8');$csrf=htmlspecialchars(\tnl_csrf(),ENT_QUOTES,'UTF-8');
+  echo '<aside class="account-actions" aria-label="Acciones de tu cuenta"><a href="'.$url('profile.php').'" title="Configuración">'.self::icon('settings').'<span>Configuración</span></a><form method="post" action="'.$url('session.php').'"><input type="hidden" name="csrf" value="'.$csrf.'"><button name="action" value="lock" title="Bloquear o configurar PIN">'.self::icon('shield').'<span>Bloquear</span></button><button name="action" value="logout">'.self::icon('arrow').'<span>Cerrar sesión</span></button></form></aside>';
  }
  private static function link(string $icon,string $label,string $href,bool $active): void {echo '<a class="nav'.($active?' active':'').'" href="'.htmlspecialchars(\tnl_url($href),ENT_QUOTES,'UTF-8').'"'.($active?' aria-current="page"':'').'>'.self::icon($icon).'<span>'.$label.'</span></a>';}
  public static function authBrand(): void {echo '<a class="auth-brand" href="index.php"><span class="brand-mark">'.self::icon('mail').'</span><span>TNL Mail</span></a>';}

@@ -12,6 +12,7 @@ final class Router {
   $to=strtolower(trim($recipient));
   if(!str_contains($to,'@')){$user=Directory::resolve($db,$to);return ['route'=>'internal','recipient'=>$user['username']];}
   if(strlen($to)>254||!filter_var($to,FILTER_VALIDATE_EMAIL)||preg_match('/[\r\n\x00]/',$to))throw new \InvalidArgumentException('Destinatario inválido.');
+  \TNL\Admin\Users::init($db);$direct=$db->prepare('SELECT username FROM users WHERE internal_address=? COLLATE NOCASE AND active=1 LIMIT 2');$direct->execute([$to]);$known=$direct->fetchAll(\PDO::FETCH_COLUMN);if(count($known)===1)return ['route'=>'internal','recipient'=>$known[0]];if(count($known)>1)throw new \InvalidArgumentException('Dirección interna ambigua.');
   $domain=strtolower(\TNL\Admin\Settings::get($db,'company_domain'));
   if($domain!==''&&substr(strrchr($to,'@'),1)===$domain){
    \TNL\Admin\Users::init($db);
@@ -29,13 +30,13 @@ final class Router {
  private static function log(\PDO $db,string $actor,string $to,string $route,string $status): void {
   self::init($db);$db->prepare('INSERT INTO mail_routes(actor,recipient,route,status,created_at) VALUES(?,?,?,?,?)')->execute([$actor,substr($to,0,254),$route,$status,gmdate('c')]);
  }
- public static function send(\PDO $db,string $actor,int $employeeId,string $to,string $subject,string $body,bool $canExternal,callable $smtp,?int $replyTo=null,string $format='plain'): array {
+ public static function send(\PDO $db,string $actor,int $employeeId,string $to,string $subject,string $body,bool $canExternal,callable $smtp,?int $replyTo=null,string $format='plain',array $metadata=[]): array {
   self::init($db);
   try{$plan=self::plan($db,$to);}catch(\InvalidArgumentException $e){self::log($db,$actor,$to,'blocked','rejected');throw $e;}
   if($plan['route']==='internal'){
    if($employeeId<1){self::log($db,$actor,$to,'internal','rejected');throw new \InvalidArgumentException('Para enviar al equipo utiliza una identidad de usuario, no la cuenta de administración.');}
    $db->beginTransaction();
-   try{InternalMail::send($db,$employeeId,$plan['recipient'],$subject,$body,$replyTo,$format);self::log($db,$actor,$plan['recipient'],'internal','delivered');$db->commit();}
+   try{InternalMail::send($db,$employeeId,$plan['recipient'],$subject,$body,$replyTo,$format,$metadata);self::log($db,$actor,$plan['recipient'],'internal','delivered');$db->commit();}
    catch(\Throwable $e){$db->rollBack();throw $e;}
    return ['route'=>'internal','message_id'=>'tnl-local:'.bin2hex(random_bytes(16))];
   }

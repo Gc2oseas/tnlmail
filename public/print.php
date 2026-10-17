@@ -9,7 +9,7 @@ try{
   if($identity['role']!=='employee')throw new RuntimeException('Mensaje no disponible.');
   $m=\TNL\Mail\InternalMail::read($db,$identity['id'],(int)($_GET['id']??0));if(!$m)throw new RuntimeException('Mensaje no disponible.');
   $q=$db->prepare('SELECT internal_address FROM users WHERE id=?');$q->execute([$m['recipient_id']]);
-  $message=['headers'=>['subject'=>$m['subject'],'from'=>$m['sender_name'].' <'.$m['sender_address'].'>','to'=>$q->fetchColumn()?:'','date'=>$m['created_at']],'body'=>\TNL\Mail\MessageBody::plain($m['body'],$m['format']),'html'=>\TNL\Mail\MessageBody::html($m['body'],$m['format'])];
+  $message=['headers'=>['subject'=>$m['subject'],'from'=>$m['sender_name'].' <'.$m['sender_address'].'>','to'=>implode(', ',json_decode($m['recipients_to']?:'[]',true)?:[])?:($q->fetchColumn()?:''),'cc'=>implode(', ',json_decode($m['recipients_cc']?:'[]',true)?:[]),'date'=>$m['created_at']],'body'=>\TNL\Mail\MessageBody::plain($m['body'],$m['format']),'html'=>\TNL\Mail\MessageBody::html($m['body'],$m['format'])];
  }else{
   $store=new \TNL\Mail\ExternalAccount($db,tnl_path('storage'));$owner=\TNL\Mail\AccountAccess::owner($db,$store,$identity,$_GET);$account=$store->load($owner);if(!$account)throw new RuntimeException('Cuenta no disponible.');
   if(($_GET['source']??'')==='sent'){

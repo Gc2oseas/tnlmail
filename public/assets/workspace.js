@@ -11,11 +11,11 @@ document.querySelectorAll('[data-directory]').forEach(input => {
  const list=document.createElement('div');list.className='recipient-suggestions';list.setAttribute('role','group');list.setAttribute('aria-label','Usuarios sugeridos');input.after(list);
  const status=document.createElement('small');status.setAttribute('role','status');list.after(status);
  let timer,controller,version=0;
- input.addEventListener('input',()=>{clearTimeout(timer);controller?.abort();const current=++version;list.replaceChildren();status.textContent='';const q=input.value.trim();if(q.length<2||q.includes('@'))return;
+ input.addEventListener('input',()=>{clearTimeout(timer);controller?.abort();const current=++version;list.replaceChildren();status.textContent='';const q=input.value.split(/[;,]/).pop().trim();if(q.length<2||q.includes('@'))return;
  timer=setTimeout(async()=>{controller=new AbortController();try{
  const response=await fetch('directory.php?q='+encodeURIComponent(q),{signal:controller.signal,headers:{Accept:'application/json'}});
  if(!response.ok||response.redirected)return;const data=await response.json();if(current!==version)return;
- for(const user of data.results||[]){const button=document.createElement('button');button.type='button';button.className='button-ghost';button.textContent=user.label;button.addEventListener('click',()=>{input.value=user.username;list.replaceChildren();status.textContent='Destinatario: '+user.label;input.focus();});list.append(button);}
+ for(const user of data.results||[]){const button=document.createElement('button');button.type='button';button.className='button-ghost';button.textContent=user.label;button.addEventListener('click',()=>{const pieces=input.value.split(/([;,])/);pieces[pieces.length-1]=(pieces.length>1?' ':'')+user.username;input.value=pieces.join('');list.replaceChildren();status.textContent='Destinatario: '+user.label;input.focus();});list.append(button);}
  if(data.results?.length===20)status.textContent='Mostrando 20 usuarios. Escribe más para afinar la búsqueda.';
  }catch(e){if(e.name!=='AbortError'&&current===version)status.textContent='No se pudieron cargar las sugerencias; escribe el usuario exacto.';}},250);});
  input.addEventListener('keydown',e=>{if(e.key==='ArrowDown'&&list.firstElementChild){e.preventDefault();list.firstElementChild.focus();}if(e.key==='Escape')list.replaceChildren();});

@@ -17,3 +17,5 @@ form{display:grid;gap:18px;margin:22px 0 0}label{display:grid;gap:7px;color:#3a4
 @media(max-width:820px){input,select,textarea{font-size:16px}.composer textarea{font-size:15px}}
 
 .mail-row-wrap{border-bottom:1px solid #e5eceb}.mail-row-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 10px}.mail-row-actions button{font-size:12px;padding:6px 10px}.mail-tabs{flex-wrap:wrap}
+
+.recipient-suggestions{display:flex;flex-direction:column;max-height:260px;overflow-y:auto;gap:4px}.recipient-suggestions button{text-align:left;white-space:normal;justify-content:flex-start}[data-provider-fields]{padding:12px 0}[data-provider-status]{font-size:14px;line-height:1.6}

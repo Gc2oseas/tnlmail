@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace TNL\Mail;
+require_once __DIR__.'/Directory.php';
 final class InternalMail {
  public static function init(\PDO $db): void {
   $db->exec("CREATE TABLE IF NOT EXISTS internal_messages (id INTEGER PRIMARY KEY, sender_id INTEGER NOT NULL, recipient_id INTEGER NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL, read_at TEXT, deleted_by_sender INTEGER NOT NULL DEFAULT 0, deleted_by_recipient INTEGER NOT NULL DEFAULT 0, reply_to_id INTEGER, FOREIGN KEY(sender_id) REFERENCES users(id), FOREIGN KEY(recipient_id) REFERENCES users(id))");
@@ -13,7 +14,7 @@ final class InternalMail {
   self::init($db);
   $recipient=strtolower(trim($recipient));$subject=trim($subject);$body=trim($body);
   if(strlen($subject)<1||strlen($subject)>200||strlen($body)<1||strlen($body)>50000)throw new \InvalidArgumentException('Asunto o mensaje inválido.');
-  $s=$db->prepare('SELECT id FROM users WHERE internal_address=? AND active=1');$s->execute([$recipient]);$to=$s->fetchColumn();
+  $target=Directory::resolve($db,$recipient);$to=(int)$target['id'];
   if(!$to)throw new \InvalidArgumentException('Destinatario interno no encontrado.');
   if($replyTo!==null){
    $previous=self::read($db,$sender,$replyTo);

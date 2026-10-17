@@ -13,6 +13,7 @@ final class Workspace {
   // Los enlaces de administración siempre parten de index.php, también desde otras pantallas.
   if($admin){$links[2][2]='admin/?page=users';$links[3][2]='admin/?page=settings';}
   $secondary=$admin?[['mail','Recuperar correos','admin/?page=trash','trash'],['shield','Seguridad','recovery.php','security'],['update','Actualizaciones','updates.php','updates'],['code','Despliegue GitHub','deployment.php','deployment']]:[['shield','Seguridad','recovery.php','security']];
+  if($admin)$secondary[]=['send','Supervisor de rutas','admin/?page=routes','routes'];
   $secondary[]=['shield','Bloqueo del dispositivo','lock.php','lock'];
   echo '<aside class="sidebar workspace-sidebar"><a class="brand" href="'.htmlspecialchars(\tnl_url($admin?'admin/':'index.php'),ENT_QUOTES,'UTF-8').'"><span class="brand-mark">'.self::icon('mail').'</span><span>TNL<span class="brand-light"> Mail</span></span></a><button type="button" class="nav-toggle button-ghost" aria-label="Abrir navegación" aria-expanded="false" aria-controls="workspace-navigation" data-nav-toggle>Menú <span aria-hidden="true">☰</span></button><div class="workspace-menu" id="workspace-navigation"><p class="nav-caption">ESPACIO DE TRABAJO</p><nav aria-label="Principal">';
   foreach($links as [$icon,$label,$href,$key])self::link($icon,$label,$href,$active===$key);

@@ -22,7 +22,7 @@ if($method==='initialize')reply($id,['protocolVersion'=>'2025-03-26','capabiliti
 if($method==='notifications/initialized'){http_response_code(202);exit;}
 function tool(string $name,string $description,array $properties=[],array $required=[]): array{return ['name'=>$name,'description'=>$description,'inputSchema'=>['type'=>'object','properties'=>$properties?:new stdClass(),'required'=>$required,'additionalProperties'=>false]];}
 $string=['type'=>'string'];$sha=['type'=>'string','pattern'=>'^[a-f0-9]{40}$'];
-$tools=[tool('system_status','Estado de PHP y versión, sin credenciales'),tool('deploy_status','Revisión instalada y último respaldo')];
+$tools=[tool('corporate_mail_settings','Detectar servidores públicos del dominio empresarial configurado; no usa contraseñas'),tool('system_status','Estado de PHP y versión, sin credenciales'),tool('deploy_status','Revisión instalada y último respaldo')];
 if($read){$tools[]=tool('mail_counts','Recuentos agregados, sin contenidos');$tools[]=tool('recent_events','Últimos eventos administrativos');}
 if($deploy){$tools[]=tool('github_preview','Preparar la revisión exacta actual de develop; sin instalar',['commit'=>$sha],['commit']);$tools[]=tool('github_deploy','Aplicar una vista previa verificada y respaldar la instalación',['commit'=>$sha,'ticket'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$']],['commit','ticket']);$tools[]=tool('github_rollback','Restaurar archivos y SQLite del último respaldo; descarta los cambios posteriores',['backup'=>$string,'confirm_data_loss'=>['type'=>'boolean']],['backup','confirm_data_loss']);}
 if($deploy)$tools[]=tool('external_mail_probe','Probar autenticación IMAP/SMTP de la cuenta de pruebas; no guarda credenciales ni envía correos',['email'=>['type'=>'string','format'=>'email'],'password'=>['type'=>'string','maxLength'=>512],'server'=>['type'=>'string','enum'=>['cache.lat','premium902-2.web-hosting.com']]],['email','password']);
@@ -31,7 +31,14 @@ if($method==='tools/call'){
  $name=$req['params']['name']??'';$args=$req['params']['arguments']??[];
  if(!is_string($name)||!is_array($args)||!in_array($name,array_column($tools,'name'),true))reply($id,null,['code'=>-32602,'message'=>'Herramienta o argumentos no autorizados']);
  try {
-  if($name==='system_status')$out=['php'=>PHP_VERSION,'pdo_sqlite'=>extension_loaded('pdo_sqlite'),'zip'=>extension_loaded('zip'),'app_version'=>Settings::get($db,'version'),'timestamp'=>gmdate('c')];
+  if($name==='corporate_mail_settings'){
+   require_once dirname(__DIR__).'/app/Mail/ServerProfiles.php';$domain=Settings::get($db,'company_domain');
+   if(!filter_var('discovery@'.$domain,FILTER_VALIDATE_EMAIL))throw new RuntimeException('Configura primero el dominio de la empresa.');
+   $profile=\TNL\Mail\ServerProfiles::detect($db,'discovery@'.$domain);
+   if($profile)foreach(['imap_username','smtp_username','imap_username_template','smtp_username_template'] as $privateField)unset($profile[$privateField]);
+   $out=['domain'=>$domain,'profile'=>$profile,'credentials_used'=>false,'xml_parser'=>class_exists('DOMDocument')];
+  }
+  elseif($name==='system_status')$out=['php'=>PHP_VERSION,'pdo_sqlite'=>extension_loaded('pdo_sqlite'),'zip'=>extension_loaded('zip'),'app_version'=>Settings::get($db,'version'),'timestamp'=>gmdate('c')];
   elseif($name==='mail_counts')$out=['users'=>(int)$db->query('SELECT count(*) FROM users')->fetchColumn(),'messages'=>(int)$db->query('SELECT count(*) FROM internal_messages')->fetchColumn(),'recovery_pending'=>(int)$db->query("SELECT count(*) FROM recovery_requests WHERE status='pending'")->fetchColumn()];
   elseif($name==='recent_events')$out=$db->query('SELECT action,actor,created_at FROM events ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC);
   elseif($name==='external_mail_probe'){require_once dirname(__DIR__).'/app/Mail/ExternalMail.php';$server=(string)($args['server']??'premium902-2.web-hosting.com');if(!in_array($server,['cache.lat','premium902-2.web-hosting.com'],true))throw new RuntimeException('Servidor no permitido para la prueba.');$config=\TNL\Mail\ExternalAccount::config(['email'=>$args['email']??'','imap_host'=>$server,'smtp_host'=>$server]);$password=(string)($args['password']??'');if($password===''||strlen($password)>512||preg_match('/[\r\n\x00]/',$password))throw new RuntimeException('Credencial inválida.');$out=\TNL\Mail\ExternalMail::probe($config+['password'=>$password]);}

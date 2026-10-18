@@ -20,6 +20,7 @@ final class FakeImapStream {
   elseif($command==='UID SEARCH UID 42:*')$this->response.="* SEARCH 1 42\r\n".$tag." OK searched\r\n";
   elseif($command==='STATUS INBOX (UNSEEN)')$this->response.="* STATUS INBOX (UNSEEN 3)\r\n".$tag." OK status\r\n";
   elseif(str_starts_with($command,'FETCH '))$this->response.="* 1 FETCH (UID 42 FLAGS () BODY[HEADER.FIELDS (SUBJECT FROM DATE TO)] {".strlen($header)."}\r\n".$header.")\r\n".$tag." OK fetched\r\n";
+  elseif(str_starts_with($command,'UID SEARCH CHARSET UTF-8 '))$this->response.="* SEARCH 42\r\n".$tag." OK searched\r\n";
   elseif(str_starts_with($command,'UID SEARCH OR HEADER Message-ID '))$this->response.="* SEARCH 42\r\n".$tag." OK searched\r\n";
   elseif($command==='UID FETCH 42 (RFC822.SIZE)')$this->response.='* 1 FETCH (UID 42 RFC822.SIZE '.(self::$oversize?2000000:strlen($body)).")\r\n".$tag." OK size\r\n";
   elseif($command==='UID FETCH 42 (UID BODY.PEEK[])')$this->response.='* 1 FETCH (UID 42 BODY[] {'.strlen($body)."}\r\n".$body.")\r\n".$tag." OK full\r\n";
@@ -38,3 +39,5 @@ $cp=$client->checkpoint();if($cp!==['validity'=>99,'next'=>43])throw new Runtime
 FakeImapStream::$oversize=true;try{$client->read(42);throw new LogicException('Oversized message allowed');}catch(RuntimeException $e){if($e instanceof LogicException)throw $e;}echo "PASS: reject oversized message before full download\n";$client->close();
 
 $seenImap=new ImapClient(['email'=>'test@example.test','password'=>'test'],fn()=>fopen('fakeimap://server','r+'));$seenImap->connect();$seenImap->markSeen([42,42,0]);$seenImap->close();if(!array_filter(FakeImapStream::$commands,fn($c)=>str_contains($c,'UID STORE 42 +FLAGS.SILENT (\\Seen)')))throw new RuntimeException('Reading thread must mark only requested UIDs seen');echo "PASS: explicit thread read marks validated UID list seen\n";
+
+FakeImapStream::$oversize=false;$searchImap=new ImapClient(['email'=>'test@example.test','password'=>'test'],fn()=>fopen('fakeimap://server','r+'));$searchImap->connect();$found=$searchImap->search(['Juan Galdamez','ideal@xempresa.com']);$searchImap->close();if(count($found)!==1||$found[0]['uid']!==42)throw new RuntimeException('IMAP full-text search failed');if(!array_filter(FakeImapStream::$commands,fn($c)=>str_contains($c,'UID SEARCH CHARSET UTF-8 OR TEXT "Juan Galdamez" TEXT "ideal@xempresa.com"')))throw new RuntimeException('Expanded IMAP query missing');echo "PASS: full-text search combines entered name and authorized email using readonly UID fetch\n";

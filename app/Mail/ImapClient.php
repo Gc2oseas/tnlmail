@@ -42,6 +42,9 @@ final class ImapClient {
  public function markSeen(array $uids,string $folder='INBOX'): void {
   $uids=array_values(array_unique(array_filter(array_map('intval',$uids),fn($uid)=>$uid>0)));if(!$uids)return;$this->command('SELECT '.$this->folder($folder));$this->command('UID STORE '.implode(',',array_slice($uids,0,30)).' +FLAGS.SILENT (\\Seen)');
  }
+ public function search(array $terms,string $folder='INBOX',int $limit=10): array {
+  $terms=array_slice(array_values(array_unique(array_filter($terms,fn($v)=>is_string($v)&&strlen(trim($v))>=2&&strlen($v)<=254))),0,6);if(!$terms)return [];$criteria='';foreach(array_reverse($terms) as $term){$item='TEXT '.$this->quote($term);$criteria=$criteria===''?$item:'OR '.$item.' '.$criteria;}$this->command('EXAMINE '.$this->folder($folder));$rows=$this->command('UID SEARCH CHARSET UTF-8 '.$criteria);$uids=[];foreach($rows as $r)if(preg_match('/^\* SEARCH(?: (.*))?\r\n$/D',$r['line'],$m))foreach(preg_split('/ +/',trim($m[1]??'')) as $uid)if(ctype_digit($uid)&&(int)$uid>0)$uids[]=(int)$uid;rsort($uids,SORT_NUMERIC);$out=[];$deadline=microtime(true)+12;foreach(array_slice(array_unique($uids),0,max(1,min(20,$limit))) as $uid){if(microtime(true)>$deadline)break;try{$out[]=$this->read($uid,$folder);}catch(\RuntimeException $e){if(!str_contains($e->getMessage(),'límite de lectura'))throw $e;}}return $out;
+ }
  public function conversation(array $headers,string $folder='INBOX'): array {
   require_once __DIR__.'/ReplyComposer.php';$thread=ReplyComposer::thread($headers);if(!$thread)return [];
   preg_match_all('/<[^<>\s]+@[^<>\s]+>/',$thread['references'],$ids);$root=$ids[0][0]??'';if(ReplyComposer::messageId($root)==='')return [];

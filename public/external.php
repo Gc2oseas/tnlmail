@@ -57,7 +57,7 @@ try {
   }else throw new RuntimeException('Acción inválida.');
  }
  if($_SERVER['REQUEST_METHOD']==='GET'&&$account&&$view==='compose'){
-  $composeMode=(string)($_GET['mode']??'new');if(!in_array($composeMode,['new','reply','forward'],true))throw new RuntimeException('Acción inválida.');
+  $composeMode=(string)($_GET['mode']??'new');if($composeMode==='new'&&isset($_GET['to'])){if(!filter_var((string)$_GET['to'],FILTER_VALIDATE_EMAIL))throw new InvalidArgumentException('Destinatario inválido.');$draft['to']=(string)$_GET['to'];}if(!in_array($composeMode,['new','reply','forward'],true))throw new RuntimeException('Acción inválida.');
   if($composeMode!=='new'&&isset($_GET['sent_id'])){$original=$store->sentView($owner,(int)$_GET['sent_id'],$account['email']);if(!$original)throw new RuntimeException('Mensaje no disponible.');$draft=ReplyComposer::prepare($original,$composeMode);$draft['cc']='';if($composeMode==='reply')$draft['to']=ReplyComposer::address($original['headers']['to']);$activeThread=$draft['thread'];$draft['body']=$composeMode==='reply'?'<p><br></p>':ReplyComposer::htmlDraft($original,$composeMode);}
   elseif($composeMode!=='new'){$imap=new ImapClient($account);try{$imap->connect();$original=$imap->read((int)($_GET['uid']??0),$folder);$draft=ReplyComposer::prepare($original,$composeMode);$activeThread=$draft['thread'];$draft['body']=$composeMode==='reply'?'<p><br></p>':ReplyComposer::htmlDraft($original,$composeMode);}finally{$imap->close();}}
  }

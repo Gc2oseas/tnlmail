@@ -1,7 +1,7 @@
 {
     "format": 1,
     "channel": "develop",
-    "version": "0.13.0-dev",
+    "version": "0.13.1-dev",
     "files": {
         "app/Admin/DeviceLock.php": "ea08792035cddb0edb9ea105b3d85b6100690c76f5b8d19a9e5f742eeed52c11",
         "app/Admin/Recovery.php": "1603e17de330ac07916aeceaaca49786eb45137a64879c58a23ab7820a36d675",
@@ -56,10 +56,10 @@
         "public/assets/jodit/jodit.min.css": "4195186166912468e2a361c6be27d42f5b78b7487fb54f14155ca83d3a6e9035",
         "public/assets/jodit/jodit.min.js": "c1b56a1ed85fbdc6d9ee1c89e58f974474354525080fc1ec4b2ee9c243e4ae35",
         "public/assets/message.css": "dc288d6803bb8d8ffd2c5a5f1b1d91c4a837c9e7dc4af4a941fe3358b9adc777",
-        "public/assets/notifications.js": "3c7209b68939861f327cc4167917fb6513492a328548b8d973fb378becc81aec",
+        "public/assets/notifications.js": "7d9a31bce9f928a36615484e1d191b0c138097d15b85e90dc494545584ab4c44",
         "public/assets/print.css": "0fdad8e437427c9b84bdc52dfa5ed222330587a19255f60d3735a3a739d419d8",
         "public/assets/print.js": "90a00c27aec6b3f1451d07a92e5d30ffa2734deeb052d3701e4e2806cfb123cd",
-        "public/assets/workspace.js": "873a77aed64191b0f9691326c502924c40c96611ccf11b4f003ef4c4226e0e33",
+        "public/assets/workspace.js": "b8639390b6faca655ecdf5a9c7745f7fa3e8fc7371298e5424641c43d8488e66",
         "public/chat.php": "3f719f3049d76aaf77e713aff5ed0dc31d797bdb95f0615458404471c5db7e66",
         "public/contacts.php": "f55a57d4b1731b7f1bdfc9d6e0bf8c33c22305fd3acfed43270cfc2b2e337140",
         "public/deployment.php": "de6e3954cc0c4aef7655aaa595826f6bde584fecc4a83e936f53888cdc4b8e10",

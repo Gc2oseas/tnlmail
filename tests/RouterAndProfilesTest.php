@@ -17,13 +17,13 @@ ok(count(\TNL\Mail\InternalMail::list($db,2,'inbox'))===1,'internal mail accepts
 $smtpCalls=0;$smtp=function($to)use(&$smtpCalls){$smtpCalls++;return '<fake@example.test>';};
 $r=\TNL\Mail\Router::send($db,'employee:1',1,'josegaldamez@example.test','Local','Do not send SMTP',false,$smtp);
 ok($r['route']==='internal'&&$smtpCalls===0,'company recipient delivered locally without external permission or SMTP call');
-fails(fn()=>\TNL\Mail\Router::send($db,'employee:1',1,'missing@example.test','Bad','Body',true,$smtp),'unknown company address blocked without SMTP fallback');
-ok($smtpCalls===0,'blocked internal route never invokes SMTP');
+$r=\TNL\Mail\Router::send($db,'employee:1',1,'missing@example.test','Company address','Body',true,$smtp);ok($r['route']==='smtp','unassigned company-domain address uses sender SMTP');
+ok($smtpCalls===1,'unassigned company recipient invokes SMTP once');
 fails(fn()=>\TNL\Mail\Router::send($db,'employee:1',1,'outside@elsewhere.test','External','Body',false,$smtp),'external permission remains enforced');
 $r=\TNL\Mail\Router::send($db,'employee:1',1,'outside@elsewhere.test','External','Body',true,$smtp);
-ok($r['route']==='smtp'&&$smtpCalls===1,'real external destination uses exactly one SMTP call');
+ok($r['route']==='smtp'&&$smtpCalls===2,'real external destination uses exactly one SMTP call');
 $routes=\TNL\Mail\Router::recent($db);
-ok(count($routes)===4&&$routes[0]['status']==='accepted','supervisor records internal, rejected, denied and SMTP-accepted decisions');
+ok(count($routes)===4&&$routes[0]['status']==='accepted','supervisor records internal, denied and SMTP-accepted decisions');
 $dir=sys_get_temp_dir().'/tnl-router-'.bin2hex(random_bytes(5));mkdir($dir);
 try{
  $store=new \TNL\Mail\ExternalAccount($db,$dir);$boxes=new \TNL\Mail\Mailboxes($db);
@@ -33,7 +33,7 @@ try{
  $boxes->assign(0,3,'Ambiguous',$config,'synthetic-password',$store);
  fails(fn()=>\TNL\Mail\Router::plan($db,'sales@example.test'),'ambiguous mailbox alias blocks rather than guessing recipient');
  $db->exec('UPDATE users SET active=0 WHERE id=2');
- fails(fn()=>\TNL\Mail\Router::plan($db,'josegaldamez@example.test'),'disabled user cannot receive company routing');
+ ok(\TNL\Mail\Router::plan($db,'josegaldamez@example.test')['route']==='smtp','disabled user receives no local delivery and address falls back to SMTP');
 }finally{foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}
 $g=\TNL\Mail\ServerProfiles::detect($db,'user@gmail.com',fn()=>throw new RuntimeException('Should not query DNS'));
 ok($g['imap_host']==='imap.gmail.com'&&$g['smtp_host']==='smtp.gmail.com','Gmail exact domain profile needs no DNS guessing');

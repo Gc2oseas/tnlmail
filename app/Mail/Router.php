@@ -12,19 +12,9 @@ final class Router {
   $to=strtolower(trim($recipient));
   if(!str_contains($to,'@')){$user=Directory::resolve($db,$to);return ['route'=>'internal','recipient'=>$user['username']];}
   if(strlen($to)>254||!filter_var($to,FILTER_VALIDATE_EMAIL)||preg_match('/[\r\n\x00]/',$to))throw new \InvalidArgumentException('Destinatario inválido.');
-  \TNL\Admin\Users::init($db);$direct=$db->prepare('SELECT username FROM users WHERE internal_address=? COLLATE NOCASE AND active=1 LIMIT 2');$direct->execute([$to]);$known=$direct->fetchAll(\PDO::FETCH_COLUMN);if(count($known)===1)return ['route'=>'internal','recipient'=>$known[0]];if(count($known)>1)throw new \InvalidArgumentException('Dirección interna ambigua.');
-  $domain=strtolower(\TNL\Admin\Settings::get($db,'company_domain'));
-  if($domain!==''&&substr(strrchr($to,'@'),1)===$domain){
-   \TNL\Admin\Users::init($db);
-   $q=$db->prepare('SELECT id,username FROM users WHERE internal_address=? COLLATE NOCASE AND active=1');$q->execute([$to]);$matches=[];foreach($q->fetchAll(\PDO::FETCH_ASSOC) as $r)$matches[(int)$r['id']]=$r['username'];
-   // Assigned company mailbox aliases must route to their active app user, too.
-   $tables=$db->query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('mailboxes','external_accounts')")->fetchAll(\PDO::FETCH_COLUMN);
-   if(count($tables)===2){
-    $q=$db->prepare("SELECT u.id,u.username FROM mailboxes m JOIN users u ON u.id=m.user_id JOIN external_accounts a ON a.owner='mailbox:'||m.id WHERE u.active=1 AND json_extract(a.config,'$.email')=? COLLATE NOCASE");$q->execute([$to]);foreach($q->fetchAll(\PDO::FETCH_ASSOC) as $r)$matches[(int)$r['id']]=$r['username'];
-   }
-   if(count($matches)!==1)throw new \InvalidArgumentException(count($matches)>1?'Dirección interna ambigua: administración debe revisar las asignaciones.':'La dirección empresarial no tiene destinatario interno activo. No se enviará por SMTP.');
-   return ['route'=>'internal','recipient'=>array_values($matches)[0]];
-  }
+  \TNL\Admin\Users::init($db);$q=$db->prepare('SELECT id,username FROM users WHERE internal_address=? COLLATE NOCASE AND active=1');$q->execute([$to]);$matches=[];foreach($q->fetchAll(\PDO::FETCH_ASSOC) as $row)$matches[(int)$row['id']]=$row['username'];
+  $tables=$db->query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('mailboxes','external_accounts')")->fetchAll(\PDO::FETCH_COLUMN);if(count($tables)===2){$q=$db->prepare("SELECT u.id,u.username FROM mailboxes m JOIN users u ON u.id=m.user_id JOIN external_accounts a ON a.owner='mailbox:'||m.id WHERE u.active=1 AND json_extract(a.config,'$.email')=? COLLATE NOCASE");$q->execute([$to]);foreach($q->fetchAll(\PDO::FETCH_ASSOC) as $row)$matches[(int)$row['id']]=$row['username'];}
+  if(count($matches)>1)throw new \InvalidArgumentException('Dirección interna ambigua: administración debe revisar las asignaciones.');if(count($matches)===1)return ['route'=>'internal','recipient'=>array_values($matches)[0]];
   return ['route'=>'smtp','recipient'=>$to];
  }
  private static function log(\PDO $db,string $actor,string $to,string $route,string $status): void {

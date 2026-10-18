@@ -13,6 +13,10 @@ final class AccountAccess {
   if($identity['role']==='employee'){$assigned=(new Mailboxes($db))->listFor($identity['id']);if($assigned)return self::owner($db,$store,$identity,['box'=>$assigned[0]['id']]);}
   if($primary)return $principal;$accounts=(new PersonalAccounts($db,$store))->list($principal);return $accounts?self::owner($db,$store,$identity,['personal'=>$accounts[0]['id']]):$principal;
  }
+ public static function composeSender(\PDO $db,ExternalAccount $store,array $identity,?array $context): array {
+  if(!$context||!isset($context['owner'],$context['email'],$context['created'])||time()-(int)$context['created']>1800||(isset($context['principal'])&&$context['principal']!==$identity['principal']))throw new \InvalidArgumentException('El formulario de envío caducó. Abre de nuevo el editor.');$owner=(string)$context['owner'];if($owner!==$identity['principal']){if(!preg_match('/^(personal|mailbox):([1-9][0-9]*)$/D',$owner,$m))throw new \InvalidArgumentException('La cuenta del editor no pertenece a tu sesión.');$selected=self::owner($db,$store,$identity,[$m[1]==='personal'?'personal':'box'=>(int)$m[2]]);if($selected!==$owner)throw new \InvalidArgumentException('Cuenta de envío no disponible.');}return ['owner'=>$owner,'account'=>$store->sender($owner,(string)$context['email'])];
+ }
+ public static function personalOwner(\PDO $db,string $owner): bool {$q=$db->prepare('SELECT config FROM external_accounts WHERE owner=?');$q->execute([$owner]);$config=json_decode($q->fetchColumn()?:'null',true);return self::personal($db,$owner,$config);}
  public static function personal(\PDO $db,string $owner,?array $account): bool {return $account!==null&&!PersonalAccounts::corporate($db,$account['email']);}
  public static function owner(\PDO $db,ExternalAccount $store,array $identity,array $input): string {
   $personal=(int)($input['personal']??0);$box=(int)($input['box']??0);
